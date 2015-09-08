@@ -18,3 +18,23 @@ body
   bottom : 0;
   margin : 0;
 }
+
+#left-pane
+{
+  position : absolute;
+  left : 0;
+  top : 0;
+  bottom : 0;
+  right : 50%;
+  overflow : hidden;
+}
+
+#right-pane
+{
+  position : absolute;
+  left : 50%;
+  top : 0;
+  bottom : 0;
+  right : 0;
+  overflow : hidden;
+}

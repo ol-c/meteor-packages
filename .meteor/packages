@@ -7,3 +7,6 @@
 meteor-platform
 autopublish
 insecure
+jasonford:reactive-carousel
+jasonford:reactive-scroll
+jasonford:client-events
