@@ -1,0 +1,48 @@
+.carousel > div
+{
+  position : absolute;
+  width  : 100%;
+  height : 100%;
+  top  : 0;
+  left : 0;
+  background : rgba(0,0,0,0.25);
+}
+
+.carousel-left-end,
+.carousel-right-end
+{
+  position : absolute;
+  top : 0;
+  bottom : 0;
+  left : 0;
+  right : 0;
+}
+
+.carousel-right-end
+{
+  right : 50%;
+}
+
+.carousel-left-end
+{
+  left : 50%;
+}
+
+.carousel > :nth-child(1) {-webkit-transform : translate(-100%, 0);}
+.carousel > :nth-child(2) {-webkit-transform : translate(    0, 0);}
+.carousel > :nth-child(3) {-webkit-transform : translate( 100%, 0);}
+
+.carousel {
+  position : absolute;
+  top  : 0;
+  left : 0;
+  width : 100%;
+  height : 100%;
+  -webkit-transform : scale(1);
+}
+
+.carousel.animating > :nth-child(1),
+.carousel.animating > :nth-child(2),
+.carousel.animating > :nth-child(3),
+.carousel.animating
+{ -webkit-transition : 300ms ease-out; }
