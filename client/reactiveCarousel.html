@@ -23,21 +23,21 @@
 </head>
 
 <body>
-  {{> carousel cursor=cursor startIndex=9 template="anything" vertical=true}}
+  {{> reactiveCarousel cursor=cursor startIndex=9 template="anything" vertical=true}}
 </body>
 
-<template name="carousel">
-  <div class="carousel {{#if vertical}}vertical{{/if}}"></div>
+<template name="reactiveCarousel">
+  <div class="reactive-carousel {{#if vertical}}vertical{{/if}}"></div>
 </template>
 
 
-<template name="carouselSlide">
-  <div class="carousel-slide">
+<template name="reactiveCarouselSlide">
+  <div class="reactive-carousel-slide">
     {{#if this}}
       {{> Template.dynamic template=../template data=this}}
     {{else}}
-      <div class="carousel-left-end"></div>
-      <div class="carousel-right-end"></div>
+      <div class="reactive-carousel-left-end"></div>
+      <div class="reactive-carousel-right-end"></div>
     {{/if}}
   </div>
 </template>

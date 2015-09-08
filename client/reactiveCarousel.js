@@ -1,4 +1,4 @@
-Template.carousel.onRendered(function () {
+Template.reactiveCarousel.onRendered(function () {
   var self = this;
 
   self.scale = 1;
@@ -27,7 +27,7 @@ Template.carousel.onRendered(function () {
     }
 
     var view = Blaze.renderWithData(
-      Template.carouselSlide,
+      Template.reactiveCarouselSlide,
       item,
       container[0],
       nextNode,
@@ -111,7 +111,7 @@ Template.carousel.onRendered(function () {
 
 });
 
-Template.carousel.events({
+Template.reactiveCarousel.events({
   'tap' : function (event, template) {
     var carousel = $(template.firstNode);
 
