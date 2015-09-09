@@ -4,7 +4,6 @@
 
 $(function () {
   var onScroll = true;
-
   $('html').on('touchstart', function (event) {
     var target = event.target;
     while (target && target.style) {
@@ -28,5 +27,4 @@ $(function () {
     if (onScroll) {}
     else event.preventDefault();
   });
-
 });
