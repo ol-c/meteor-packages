@@ -206,13 +206,13 @@ Template.reactiveCarousel.events({
       if (template.dy + height * template.scale > height) {
         template.dy = height * (1 - template.scale);
       }
-      //  don't let us see before prev or after last
-      if (template.dx > width * template.scale) {
-        template.dx = width * template.scale;
-      }
-      if (template.dx < width - 2*width*template.scale) {
-        template.dx = width - 2*width*template.scale;
-      }
+    }
+    //  don't let us see before prev or after last
+    if (template.dx > width * template.scale) {
+      template.dx = width * template.scale;
+    }
+    if (template.dx < width - 2*width*template.scale) {
+      template.dx = width - 2*width*template.scale;
     }
     template.render();
   },
@@ -234,6 +234,17 @@ Template.reactiveCarousel.events({
     if (template.scale < 1/3) {
       template.scale = 1/3;
     }
+
+    var width = carousel.width();
+
+    //  don't let us see before prev or after last
+    if (template.dx > width * template.scale) {
+      template.dx = width * template.scale;
+    }
+    if (template.dx < width - 2*width*template.scale) {
+      template.dx = width - 2*width*template.scale;
+    }
+
     template.render();
   },
   'drop' : function (event, template) {
