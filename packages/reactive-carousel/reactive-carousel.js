@@ -9,14 +9,44 @@ Template.reactiveCarousel.onRendered(function () {
   self.template = Template[self.data.template];
   self.renderedViews = {};
   self.renderedItems = {};
+  self.items = {};
 
   var nextRenderFrame;
   var container = $(self.firstNode);
 
+  self.autorun(function () {
+    //  behave nicely when the cursor data gets messed with around index
+    self.cursor.observe({
+      addedAt : function (doc, i, before) {
+        if (i>=self.index-1 && i<=self.index+1) {
+          if (self.items[i] === undefined) {
+            self.items[i] = new ReactiveVar(doc);
+          }
+          else {
+            self.items[i].set(doc);
+          }
+        }
+      },
+      changedAt : function (newDoc, oldDoc, i) {
+        if(self.items[i]) {
+          self.items[i].set(newDoc);
+        }
+      },
+      removedAt : function (oldDoc, index) {
+        //  remove from items and from view
+        if (self.items[i]) {
+          // TODO: adjust for remove
+        }
+      }
+    });
+  });
+
   function insertForIndex(index, waitOnTransition) {
     function item() {
-      self.renderedItems[index] = self.cursor.fetch()[index];
-      return self.renderedItems[index];
+      if (self.items[index] == undefined) {
+        self.items[index] = new ReactiveVar(self.cursor.fetch()[index]);
+      }
+      return self.items[index].get();
     }
 
     var nextNode;
@@ -56,7 +86,8 @@ Template.reactiveCarousel.onRendered(function () {
 
     //  only advance the view if there is
     //  an item for the new current index
-    if (self.renderedItems[self.index + direction]) {
+    var nextItem = self.items[self.index + direction];
+    if (nextItem && nextItem.get()) {
       //  remove offsceen view if exists
       var oldView = self.renderedViews[self.index - direction];
       if (oldView) {
@@ -146,7 +177,8 @@ Template.reactiveCarousel.events({
     template.dy += event.dy;
 
     var exposedDirection = template.dx / Math.abs(template.dx);
-    if (template.renderedItems[template.index - exposedDirection]) {
+    var exposedItem = template.items[template.index - exposedDirection];
+    if (exposedItem && exposedItem.get()) {
       //  there is an element in the space that is exposed
     }
     else {

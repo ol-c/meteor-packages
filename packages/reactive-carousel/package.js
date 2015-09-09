@@ -12,7 +12,10 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.1.0.3');
-  api.use(['templating'], 'client');
+  api.use([
+    'templating',
+    'reactive-var'
+  ], 'client');
   api.addFiles([
     'reactive-carousel.html',
     'reactive-carousel.css',
