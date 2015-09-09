@@ -70,7 +70,6 @@ Template.reactiveScroll.onRendered(function () {
           });
           index += 1;
         }
-
         else {
           items[i] = new ReactiveVar(doc);
           self.fill();

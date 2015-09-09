@@ -2,7 +2,7 @@
 //  FOR CAROUSEL
 var carouselCollection = new Mongo.Collection(null);
 
-for (var i=1; i<=10; i++) {
+for (var i=1; i<=1000; i++) {
   carouselCollection.insert({
     index : i
   });

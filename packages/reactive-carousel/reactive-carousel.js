@@ -18,14 +18,14 @@ Template.reactiveCarousel.onRendered(function () {
     //  behave nicely when the cursor data gets messed with around index
     self.cursor.observe({
       addedAt : function (doc, i, before) {
-        if (i>=self.index-1 && i<=self.index+1) {
+//        if (i>=self.index-1 && i<=self.index+1) {
           if (self.items[i] === undefined) {
             self.items[i] = new ReactiveVar(doc);
           }
           else {
             self.items[i].set(doc);
           }
-        }
+//        }
       },
       changedAt : function (newDoc, oldDoc, i) {
         if(self.items[i]) {
@@ -44,7 +44,7 @@ Template.reactiveCarousel.onRendered(function () {
   function insertForIndex(index, waitOnTransition) {
     function item() {
       if (self.items[index] == undefined) {
-        self.items[index] = new ReactiveVar(self.cursor.fetch()[index]);
+        self.items[index] = new ReactiveVar();
       }
       return self.items[index].get();
     }
@@ -187,6 +187,7 @@ Template.reactiveCarousel.events({
     }
 
     var height = carousel.height();
+    var width = carousel.width();
     var minY = height - height*template.scale;
     var maxY = 0;
     if (template.scale === 1) {
@@ -204,6 +205,13 @@ Template.reactiveCarousel.events({
       }
       if (template.dy + height * template.scale > height) {
         template.dy = height * (1 - template.scale);
+      }
+      //  don't let us see before prev or after last
+      if (template.dx > width * template.scale) {
+        template.dx = width * template.scale;
+      }
+      if (template.dx < width - 2*width*template.scale) {
+        template.dx = width - 2*width*template.scale;
       }
     }
     template.render();
@@ -223,6 +231,9 @@ Template.reactiveCarousel.events({
     template.dy += (offY * (1 - event.scale));
 
     template.scale *= event.scale;
+    if (template.scale < 1/3) {
+      template.scale = 1/3;
+    }
     template.render();
   },
   'drop' : function (event, template) {
