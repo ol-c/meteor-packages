@@ -1,8 +1,8 @@
 Package.describe({
-  name: 'jasonford:reactive-carousel',
-  version: '0.0.3',
+  name: 'jasonford:icons',
+  version: '0.0.1',
   // Brief, one-line summary of the package.
-  summary: 'Fully reactive carousel that renders only the previous, current and next item of a cursor.',
+  summary: 'Template for adding svg based icons. Comes with some icons.',
   // URL to the Git repository containing the source code for this package.
   git: '',
   // By default, Meteor will default to using README.md for documentation.
@@ -13,18 +13,18 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.1.0.3');
   api.use([
-    'templating',
-    'reactive-var'
+    'templating'
   ], 'client');
+
   api.addFiles([
-    'reactive-carousel.html',
-    'reactive-carousel.css',
-    'reactive-carousel.js'
+    'icon.css',
+    'icon.html',
+    'icons.html',
   ], 'client');
 });
 
 Package.onTest(function(api) {
   api.use('tinytest');
-  api.use('jasonford:reactive-carousel');
-  api.addFiles('reactive-carousel-tests.js');
+  api.use('jasonford:icons');
+  api.addFiles('icons-tests.js');
 });

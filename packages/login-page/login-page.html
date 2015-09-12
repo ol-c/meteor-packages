@@ -1,0 +1,92 @@
+<template name="loginPage">
+  <div id="login-page">
+    {{#if loginDisplayMessage}}
+      <div id="login-display-message">{{ loginDisplayMessage }}</div>
+    {{/if}}
+    {{#if loginDisplayError}}
+      <div id="login-display-error">{{ loginDisplayError }}</div>
+    {{/if}}
+
+    {{#if registering}}
+      {{> loginThirdParty}}
+      {{> registerForm}}
+      <button id="login-form-button">already have account</button>
+    {{else}}
+    {{#if recovering}}
+      {{> recoverPassword}}
+      <button id="login-form-button">back</button>
+    {{else}}
+      {{#if anyLoginServiceActive}}
+        {{> loginThirdParty}}
+        {{> loginForm}}
+        <button id="register-form-button">new account</button>
+        <button id="recover-form-button">recover password</button>
+      {{else}}
+        no login plugins are active. To add one use "meteor add PACKAGE_NAME"
+      {{/if}}
+    {{/if}}{{/if}}
+  </div>
+</template>
+
+<template name="loginThirdParty">
+  {{#each loginServices}}
+    <span id="login-{{ this }}-button" class="third-party-login-button">
+      {{#if iconFor this}}
+        {{#with iconFor this}}
+          {{> icon name=this}}
+        {{/with}}
+      {{else}}
+        Log in with {{ this }}
+      {{/if}}
+    </span>
+  {{/each}}
+</template>
+
+<template name="loginForm">
+  <form id="login-form" action="">
+    <div>
+      <input type="text" class="login-input" placeholder="email or username" id="login-email-or-username" autocapitalize="off" autocorrect="off"/>
+      {{> inputErrorMessage usernameError}}
+      <input type="password" class="login-input" placeholder="password" id="login-password" />
+      {{> inputErrorMessage passwordError}}
+      <input type="submit" id="login-button" value="Sign in" />
+    </div>
+  </form>
+</template>
+
+<template name="registerForm">
+  <form id="register-form" action="">
+    <div>
+      <input type="username" class="login-input" placeholder="username" id="account-username" autocapitalize="off" autocorrect="off"/>
+      {{> inputErrorMessage usernameError}}
+      <input type="email" class="login-input" placeholder="email" id="account-email" />
+      {{> inputErrorMessage emailError}}
+      <input type="password" class="login-input" placeholder="password" id="account-password" />
+      <input type="password" class="login-input" placeholder="confirm password" id="confirm-account-password" />
+      {{> inputErrorMessage passwordError}}
+      <input type="submit" id="create-account" value="Create an Account" />
+    </div>
+  </form>
+</template>
+
+<template name="recoverPassword">
+  {{#if resetPassword}}
+    <form id="new-password" action="">
+      <div>
+        <input type="text" placeholder="new password" class="login-input" id="new-password-password" />
+        <input type="submit" class="login-input" value="Change Password" />
+      </div>
+    </form>
+  {{else}}
+    <form id="recovery-form" action="action">
+      <div>
+        <input type="text" placeholder="username or email" class="login-input" id="recovery-email" autocapitalize="off" autocorrect="off"/>              
+        <input type="submit" value="Send Reset Instructions" />
+      </div>
+    </form>
+  {{/if}}
+</template>
+
+<template name="inputErrorMessage">
+  <span class="input-error-message">{{this}}</span>
+</template>

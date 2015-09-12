@@ -3,12 +3,16 @@
 </head>
 
 <body>
-  <div id="left-pane">
-    {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="anything" vertical=true}}
-  </div>
-  <div id="right-pane">
-    {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
-  </div>
+  {{#if currentUser}}
+    <div id="left-pane">
+      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="anything" vertical=true}}
+    </div>
+    <div id="right-pane">
+      {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
+    </div>
+  {{else}}
+    {{> loginPage}}
+  {{/if}}
 </body>
 
 <template name="anything">

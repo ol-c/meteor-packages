@@ -7,25 +7,28 @@ Template.reactiveCarousel.onRendered(function () {
   self.cursor = self.data.cursor;
   self.index  = self.data.startIndex;
   self.template = Template[self.data.template];
-  self.renderedViews = {};
-  self.renderedItems = {};
-  self.items = {};
+  self.items = [];
 
   var nextRenderFrame;
   var container = $(self.firstNode);
 
+
+
+  insertForIndex(self.index - 1);
+  insertForIndex(self.index    );
+  insertForIndex(self.index + 1);
+
+  //  TODO: insert items in the correct spot in the publication
   self.autorun(function () {
     //  behave nicely when the cursor data gets messed with around index
     self.cursor.observe({
       addedAt : function (doc, i, before) {
-//        if (i>=self.index-1 && i<=self.index+1) {
-          if (self.items[i] === undefined) {
-            self.items[i] = new ReactiveVar(doc);
-          }
-          else {
-            self.items[i].set(doc);
-          }
-//        }
+        if (self.items[i] === undefined) {
+          self.items[i] = new ReactiveVar(doc);
+        }
+        else {
+          self.items[i].set(doc);
+        }
       },
       changedAt : function (newDoc, oldDoc, i) {
         if(self.items[i]) {
@@ -41,12 +44,18 @@ Template.reactiveCarousel.onRendered(function () {
     });
   });
 
+  var firstRendered = false;
+
   function insertForIndex(index, waitOnTransition) {
     function item() {
-      if (self.items[index] == undefined) {
+      if (self.items[index] === undefined) {
         self.items[index] = new ReactiveVar();
       }
-      return self.items[index].get();
+      var item = self.items[index].get();
+      if (item && self.index === self.data.startIndex) {
+        firstRendered = true;
+      }
+      return item;
     }
 
     var nextNode;
@@ -71,12 +80,8 @@ Template.reactiveCarousel.onRendered(function () {
       });
     }
 
-    self.renderedViews[index] = view;
+    self.items[index].view = view;
   }
-
-  insertForIndex(self.index - 1);
-  insertForIndex(self.index    );
-  insertForIndex(self.index + 1);
 
   self.move = function (direction) {
 
@@ -88,12 +93,10 @@ Template.reactiveCarousel.onRendered(function () {
     //  an item for the new current index
     var nextItem = self.items[self.index + direction];
     if (nextItem && nextItem.get()) {
-      //  remove offsceen view if exists
-      var oldView = self.renderedViews[self.index - direction];
+      var oldIndex = self.index - direction;
+      var oldView = self.items[oldIndex].view;
       if (oldView) {
         Blaze.remove(oldView);
-        delete self.renderedItems[self.index - direction];
-        delete self.renderedViews[self.index - direction];
       }
 
       //  increment index and add new view in proper direction

@@ -1,6 +1,6 @@
 
 //  FOR CAROUSEL
-var carouselCollection = new Mongo.Collection(null);
+carouselCollection = new Mongo.Collection(null);
 
 for (var i=1; i<=1000; i++) {
   carouselCollection.insert({
@@ -12,23 +12,37 @@ Template.registerHelper('carouselCursor', function () {
   return carouselCollection.find({}, {sort : {index : 1}});
 });
 
+//  always updating
+function keepAddingCarousel() {
+  carouselCollection.insert({
+    index : i*Math.random()
+  });
+  Meteor.setTimeout(keepAddingCarousel, 100);
+}
+
+keepAddingCarousel();
+
 
 //  FOR SCROLL
-var scrollCollection = new Mongo.Collection(null);
+scrollCollection = new Mongo.Collection(null);
+var i;
 
-for (var i=0; i<=10; i++) {
+for (i=0; i<=10; i++) {
   scrollCollection.insert({
     index : i
   });
 }
 
-Meteor.setTimeout(function () {
-  for (var i=11; i<=20; i++) {
-    scrollCollection.insert({
-      index : i
-    });
-  }
-}, 3000);
+//  always updating
+function keepAddingScroll() {
+  scrollCollection.insert({
+    index : i*Math.random()
+  });
+  Meteor.setTimeout(keepAddingScroll, 100);
+}
+
+keepAddingScroll();
+
 
 Meteor.setTimeout(function () {
   scrollCollection.insert({
