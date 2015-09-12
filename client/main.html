@@ -3,7 +3,9 @@
 </head>
 
 <body>
-  {{#if currentUser}}
+  {{#if loggingIn}}
+  
+  {{else}}{{#if currentUser}}
     <div id="left-pane">
       {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="anything" vertical=true}}
     </div>
@@ -12,11 +14,11 @@
     </div>
   {{else}}
     {{> loginPage}}
-  {{/if}}
+  {{/if}}{{/if}}
 </body>
 
 <template name="anything">
-    {{ index }}
+  {{ index }}
 </template>
 
 <template name="randomSize">

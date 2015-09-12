@@ -11,55 +11,51 @@ Template.reactiveCarousel.onRendered(function () {
 
   var nextRenderFrame;
   var container = $(self.firstNode);
-
-
-
-  insertForIndex(self.index - 1);
-  insertForIndex(self.index    );
-  insertForIndex(self.index + 1);
-
-  //  TODO: insert items in the correct spot in the publication
-  self.autorun(function () {
-    //  behave nicely when the cursor data gets messed with around index
-    self.cursor.observe({
-      addedAt : function (doc, i, before) {
-        if (self.items[i] === undefined) {
-          self.items[i] = new ReactiveVar(doc);
-        }
-        else {
-          self.items[i].set(doc);
-        }
-      },
-      changedAt : function (newDoc, oldDoc, i) {
-        if(self.items[i]) {
-          self.items[i].set(newDoc);
-        }
-      },
-      removedAt : function (oldDoc, index) {
-        //  remove from items and from view
-        if (self.items[i]) {
-          // TODO: adjust for remove
-        }
-      }
-    });
-  });
-
   var firstRendered = false;
+  var addedAfterRender = 0;
+
+  var lastIndexChange = new ReactiveVar();
+
+  var views = [
+    insertForIndex(self.index - 1),
+    insertForIndex(self.index    ),
+    insertForIndex(self.index + 1)
+  ];
+
+  //  behave nicely when the cursor data gets messed with around index
+  self.handle = self.cursor.observe({
+    addedAt : function (doc, i, before) {
+      self.items.splice(i, 0, new ReactiveVar(doc));
+      console.log(self.index - addedAfterRender);
+      if (firstRendered && i <= self.index) {
+        self.index += 1;
+        addedAfterRender += 1;
+      }
+      lastIndexChange.set(Math.random());
+    },
+    changedAt : function (newDoc, oldDoc, i) {
+      //  change item
+      self.items[i].set(newDoc);
+    },
+    removedAt : function (oldDoc, i) {
+      //  remove from items and from view
+      self.items[i].splice(i, 1);
+    }
+  });
 
   function insertForIndex(index, waitOnTransition) {
     function item() {
-      if (self.items[index] === undefined) {
-        self.items[index] = new ReactiveVar();
+      lastIndexChange.get();
+      if (self.items[index + addedAfterRender]) {
+        if (index == self.index) {
+          firstRendered = true;
+        }
+        return self.items[index + addedAfterRender].get();
       }
-      var item = self.items[index].get();
-      if (item && self.index === self.data.startIndex) {
-        firstRendered = true;
-      }
-      return item;
     }
 
     var nextNode;
-    if (index < self.index) {
+    if (index + addedAfterRender < self.index) {
       //  if index less than current index,
       //  insert the view as the first in container
       nextNode = container[0].firstChild;
@@ -80,7 +76,7 @@ Template.reactiveCarousel.onRendered(function () {
       });
     }
 
-    self.items[index].view = view;
+    return view;
   }
 
   self.move = function (direction) {
@@ -93,15 +89,18 @@ Template.reactiveCarousel.onRendered(function () {
     //  an item for the new current index
     var nextItem = self.items[self.index + direction];
     if (nextItem && nextItem.get()) {
-      var oldIndex = self.index - direction;
-      var oldView = self.items[oldIndex].view;
-      if (oldView) {
-        Blaze.remove(oldView);
-      }
-
       //  increment index and add new view in proper direction
       self.index += direction;
-      insertForIndex(self.index + direction, true);
+      //  insert and manage views
+      var view = insertForIndex(self.index + direction - addedAfterRender, true);
+      if (direction < 0) {
+        Blaze.remove(views.pop());
+        views.unshift(view);
+      }
+      else {
+        Blaze.remove(views.shift());
+        views.push(view);
+      }
     }
 
     container.addClass('animating');
@@ -144,6 +143,10 @@ Template.reactiveCarousel.onRendered(function () {
   });
 
 });
+
+Template.reactiveCarousel.onDestroyed(function () {
+  this.handle.stop();
+})
 
 Template.reactiveCarousel.events({
   'tap' : function (event, template) {

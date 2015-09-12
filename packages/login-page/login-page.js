@@ -120,22 +120,9 @@ Template.loginThirdParty.helpers({
 });
 
 Template.loginThirdParty.events({
-  'tap #login-google-button' : function () {
-    Meteor.loginWithGoogle(function (error) {
-      if (error) {
-        Session.set('loginDisplayError', error.message);
-      }
-    });
-  },
-  'tap #login-facebook-button' : function () {
-    Meteor.loginWithFacebook(function (error) {
-      if (error) {
-        Session.set('loginDisplayError', error.message);
-      }
-    });
-  },
-  'tap #login-twitter-button' : function () {
-    Meteor.loginWithTwitter(function (error) {
+  'tap .third-party-login-button' : function (event, template) {
+    var service = $(event.target).closest('.third-party-login-button').attr('data-service');
+    Meteor['loginWith' + service[0].toUpperCase() + service.slice(1)](function (error) {
       if (error) {
         Session.set('loginDisplayError', error.message);
       }

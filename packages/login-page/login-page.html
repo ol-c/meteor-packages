@@ -22,7 +22,7 @@
         <button id="register-form-button">new account</button>
         <button id="recover-form-button">recover password</button>
       {{else}}
-        no login plugins are active. To add one use "meteor add PACKAGE_NAME"
+        No login plugins are in use. To add one use "meteor add PACKAGE_NAME".
       {{/if}}
     {{/if}}{{/if}}
   </div>
@@ -30,7 +30,7 @@
 
 <template name="loginThirdParty">
   {{#each loginServices}}
-    <span id="login-{{ this }}-button" class="third-party-login-button">
+    <span data-service="{{ this }}" class="third-party-login-button">
       {{#if iconFor this}}
         {{#with iconFor this}}
           {{> icon name=this}}

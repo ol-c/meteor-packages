@@ -44,9 +44,8 @@ Template.reactiveScroll.onRendered(function () {
       }
       Meteor.setTimeout(function () {
         filling = false;
-        if (lastTop == container.scrollTop()) self.fill();
-        lastTop = container.scrollTop();
-      }, 10);
+        self.fill();
+      });
     }
   }
 
@@ -90,6 +89,9 @@ Template.reactiveScroll.onRendered(function () {
   });
 
 });
+
+Template.reactiveScrollItem.onRendered(function () {
+})
 
 Template.reactiveScroll.events({
   'touchmove': function (event, template) {
