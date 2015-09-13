@@ -84,7 +84,7 @@ Template.reactiveScroll.onRendered(function () {
 });
 
 Template.reactiveScroll.onDestroyed(function () {
-  self.handle.stop();
+  this.handle.stop();
 })
 
 Template.reactiveScrollItem.onRendered(function () {

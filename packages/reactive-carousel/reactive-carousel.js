@@ -39,6 +39,21 @@ Template.reactiveCarousel.onRendered(function () {
     removedAt : function (oldDoc, i) {
       //  remove from items and from view
       self.items[i].splice(i, 1);
+    },
+    movedAt : function (doc, fromIndex, toIndex, before) {
+      //  move the item appropriately;
+      self.items.splice(toIndex, 0, self.items.splice(fromIndex, 1));
+      if (firstRendered) {
+        if (fromIndex <= self.index) {
+          self.index -= 1;
+          addedAfterRender -= 1;
+        }
+        if (toIndex <= self.index) {
+          self.index += 1;
+          addedAfterRender += 1;
+        }
+      }
+      lastIndexChange.set(Math.random());
     }
   });
 
