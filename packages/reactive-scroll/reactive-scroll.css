@@ -8,3 +8,9 @@
   overflow-x : hidden;
   -webkit-overflow-scrolling : touch;
 }
+
+.reactive-scroll-item-temp-holder
+{
+  overflow : hidden;
+  height : 0;
+}

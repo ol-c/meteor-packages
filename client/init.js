@@ -20,14 +20,14 @@ function keepAddingCarousel() {
   Meteor.setTimeout(keepAddingCarousel, 100);
 }
 
-keepAddingCarousel();
+//keepAddingCarousel();
 
 
 //  FOR SCROLL
 scrollCollection = new Mongo.Collection(null);
 var i;
 
-for (i=0; i<=10; i++) {
+for (i=0; i<=1000; i++) {
   scrollCollection.insert({
     index : i
   });
@@ -41,7 +41,7 @@ function keepAddingScroll() {
   Meteor.setTimeout(keepAddingScroll, 100);
 }
 
-keepAddingScroll();
+//keepAddingScroll();
 
 
 Meteor.setTimeout(function () {
@@ -59,8 +59,8 @@ Template.randomSize.onRendered(function () {
   $(self.firstNode).css({
     margin : '4px',
     background : '#EEEEEE',
-    width : '100%',
-    height : 16 + Math.random() * 256,
+    width : 16 + Math.random() * 32,
+    height : 16 + Math.random() * 32,
     display : 'inline-block'
   });
 });

@@ -26,7 +26,6 @@ Template.reactiveCarousel.onRendered(function () {
   self.handle = self.cursor.observe({
     addedAt : function (doc, i, before) {
       self.items.splice(i, 0, new ReactiveVar(doc));
-      console.log(self.index - addedAfterRender);
       if (firstRendered && i <= self.index) {
         self.index += 1;
         addedAfterRender += 1;

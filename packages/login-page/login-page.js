@@ -62,6 +62,9 @@ Template.loginPage.helpers({
       }
     }
     return false;
+  },
+  loginPasswordActive : function () {
+    return Meteor.loginWithPassword !== undefined;
   }
 });
 

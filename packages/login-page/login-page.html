@@ -18,9 +18,11 @@
     {{else}}
       {{#if anyLoginServiceActive}}
         {{> loginThirdParty}}
-        {{> loginForm}}
-        <button id="register-form-button">new account</button>
-        <button id="recover-form-button">recover password</button>
+        {{#if loginPasswordActive}}
+          {{> loginForm}}
+          <button id="register-form-button">new account</button>
+          <button id="recover-form-button">recover password</button>
+        {{/if}}
       {{else}}
         No login plugins are in use. To add one use "meteor add PACKAGE_NAME".
       {{/if}}
