@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:reactive-carousel',
-  version: '0.0.4',
+  version: '0.0.6',
   // Brief, one-line summary of the package.
   summary: 'Fully reactive carousel that renders only the previous, current and next item of a cursor.',
   // URL to the Git repository containing the source code for this package.

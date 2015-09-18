@@ -2,7 +2,7 @@ Package.describe({
   name: 'jasonford:login-page',
   version: '0.0.1',
   // Brief, one-line summary of the package.
-  summary: '',
+  summary: 'simple unstyled login page for meteor application',
   // URL to the Git repository containing the source code for this package.
   git: '',
   // By default, Meteor will default to using README.md for documentation.
@@ -12,10 +12,9 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.1.0.3');
-
   api.use([
     'templating',
-    'jasonford:icons'
+    'jasonford:icons@0.0.1'
   ], 'client');
 
   api.use('accounts-base');

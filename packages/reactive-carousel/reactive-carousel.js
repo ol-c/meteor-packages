@@ -1,5 +1,7 @@
-Template.reactiveCarousel.onRendered(function () {
+Template.reactiveCarousel.onCreated(function () {
   var self = this;
+
+  self.timeCreated = new Date();
 
   self.scale = 1;
   self.dx = 0;
@@ -8,29 +10,19 @@ Template.reactiveCarousel.onRendered(function () {
   self.index  = self.data.startIndex;
   self.template = Template[self.data.template];
   self.items = [];
-
-  var nextRenderFrame;
-  var container = $(self.firstNode);
-  var firstRendered = false;
-  var addedAfterRender = 0;
-
-  var lastIndexChange = new ReactiveVar();
-
-  var views = [
-    insertForIndex(self.index - 1),
-    insertForIndex(self.index    ),
-    insertForIndex(self.index + 1)
-  ];
+  self.addedAfterCreated = 0;
+  self.firstRendered = false;
+  self.lastIndexChange = new ReactiveVar();
 
   //  behave nicely when the cursor data gets messed with around index
   self.handle = self.cursor.observe({
     addedAt : function (doc, i, before) {
       self.items.splice(i, 0, new ReactiveVar(doc));
-      if (firstRendered && i <= self.index) {
+      if (self.firstRendered && i <= self.index) {
         self.index += 1;
-        addedAfterRender += 1;
+        self.addedAfterCreted += 1;
       }
-      lastIndexChange.set(Math.random());
+      self.lastIndexChange.set(Math.random());
     },
     changedAt : function (newDoc, oldDoc, i) {
       //  change item
@@ -43,33 +35,49 @@ Template.reactiveCarousel.onRendered(function () {
     movedAt : function (doc, fromIndex, toIndex, before) {
       //  move the item appropriately;
       self.items.splice(toIndex, 0, self.items.splice(fromIndex, 1));
-      if (firstRendered) {
+      if (self.firstRendered) {
         if (fromIndex <= self.index) {
           self.index -= 1;
-          addedAfterRender -= 1;
+          self.addedAfterCreated -= 1;
         }
         if (toIndex <= self.index) {
           self.index += 1;
-          addedAfterRender += 1;
+          self.addedAfterCreated += 1;
         }
       }
-      lastIndexChange.set(Math.random());
+      self.lastIndexChange.set(Math.random());
     }
   });
+  console.log('time to create ' + (new Date() - self.timeCreated));
+});
+
+Template.reactiveCarousel.onRendered(function () {
+  var self = this;
+  console.log('time to start rendering ' + (new Date() - self.timeCreated));
+
+  var nextRenderFrame;
+  var container = $(self.firstNode);
+
+  var views = [
+    insertForIndex(self.index - 1),
+    insertForIndex(self.index    ),
+    insertForIndex(self.index + 1)
+  ];
 
   function insertForIndex(index, waitOnTransition) {
     function item() {
-      lastIndexChange.get();
-      if (self.items[index + addedAfterRender]) {
+      self.lastIndexChange.get();
+      if (self.items[index + self.addedAfterCreated]) {
         if (index == self.index) {
-          firstRendered = true;
+          self.firstRendered = true;
+          console.log('time to first render ' + (new Date() - self.timeCreated));
         }
-        return self.items[index + addedAfterRender].get();
+        return self.items[index + self.addedAfterCreated].get();
       }
     }
 
     var nextNode;
-    if (index + addedAfterRender < self.index) {
+    if (index + self.addedAfterCreated < self.index) {
       //  if index less than current index,
       //  insert the view as the first in container
       nextNode = container[0].firstChild;
@@ -106,7 +114,7 @@ Template.reactiveCarousel.onRendered(function () {
       //  increment index and add new view in proper direction
       self.index += direction;
       //  insert and manage views
-      var view = insertForIndex(self.index + direction - addedAfterRender, true);
+      var view = insertForIndex(self.index + direction - self.addedAfterCreated, true);
       if (direction < 0) {
         Blaze.remove(views.pop());
         views.unshift(view);
@@ -156,6 +164,7 @@ Template.reactiveCarousel.onRendered(function () {
     container.removeClass('animating');
   });
 
+  console.log('time to finish rendering ' + (new Date() - self.timeCreated));
 });
 
 Template.reactiveCarousel.onDestroyed(function () {

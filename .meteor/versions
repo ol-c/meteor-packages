@@ -24,8 +24,8 @@ jasonford:client-events@0.0.1
 jasonford:icons@0.0.1
 jasonford:login-page@0.0.1
 jasonford:no-body-scroll@0.0.2
-jasonford:reactive-carousel@0.0.4
-jasonford:reactive-scroll@0.0.3
+jasonford:reactive-carousel@0.0.6
+jasonford:reactive-scroll@0.0.4
 jquery@1.11.3_2
 json@1.0.3
 launch-screen@1.0.2

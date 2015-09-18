@@ -9,7 +9,7 @@ for (var i=1; i<=1000; i++) {
 }
 
 Template.registerHelper('carouselCursor', function () {
-  return carouselCollection.find({}, {sort : {index : 1}});
+  return carouselCollection.find({});
 });
 
 //  always updating
@@ -51,7 +51,7 @@ Meteor.setTimeout(function () {
 }, 5000);
 
 Template.registerHelper('scrollCursor', function () {
-  return scrollCollection.find({}, {sort : {index : 1}});
+  return scrollCollection.find({});
 });
 
 Template.randomSize.onRendered(function () {
