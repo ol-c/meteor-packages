@@ -32,7 +32,7 @@
 
 <template name="loginThirdParty">
   {{#each loginServices}}
-    <span data-service="{{ this }}" class="third-party-login-button">
+    <span data-service="{{ this }}" class="third-party-login-button" id="login-{{ this }}-icon">
       {{#if iconFor this}}
         {{#with iconFor this}}
           {{> icon name=this}}
