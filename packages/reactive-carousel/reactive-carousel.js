@@ -68,11 +68,14 @@ Template.reactiveCarousel.onRendered(function () {
     function item() {
       self.lastIndexChange.get();
       if (self.items[index + self.addedAfterCreated]) {
+        var item = self.items[index + self.addedAfterCreated].get();
         if (index == self.index) {
           self.firstRendered = true;
+          var itemChangeEvent = $.Event("itemChange", {item : item});
+          container.trigger(itemChangeEvent);
           console.log('time to first render ' + (new Date() - self.timeCreated));
         }
-        return self.items[index + self.addedAfterCreated].get();
+        return item;
       }
     }
 
@@ -123,6 +126,9 @@ Template.reactiveCarousel.onRendered(function () {
         Blaze.remove(views.shift());
         views.push(view);
       }
+
+      var itemChangeEvent = $.Event("itemChange", {item : self.items[self.index].get()});
+      container.trigger(itemChangeEvent);
     }
 
     container.addClass('animating');
