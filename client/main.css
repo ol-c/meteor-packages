@@ -17,3 +17,26 @@
   right : 0;
   overflow : hidden;
 }
+
+#demo-select-space > select
+{
+  display : block;
+}
+
+#demo-select-space
+{
+  position : absolute;
+  top : 0;
+  left : 0;
+  right : 0;
+  height : 64px;
+}
+
+#demo-space
+{
+  position : absolute;
+  top : 64px;
+  left : 0;
+  right : 0;
+  bottom : 0;
+}

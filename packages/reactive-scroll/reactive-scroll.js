@@ -32,17 +32,16 @@ Template.reactiveScroll.onRendered(function () {
       if (items[index]) {
         var i = index;
         index += 1;
-        insert(i, nextNode);
+        insert(i, nextNode, function () {
+          filling = false;
+          self.fill();
+        });
       }
-      Meteor.setTimeout(function () {
-        filling = false;
-        self.fill();
-      });
     }
   }
 
-  function insert(i, nextNode) {
-    requestAnimationFrame(function () {
+  function insert(i, nextNode, callback) {
+    function perform() {
       var view = Blaze.renderWithData(
         Template.reactiveScrollItem,
         item(i),
@@ -51,7 +50,15 @@ Template.reactiveScroll.onRendered(function () {
         self.view
       );
       self.renderedViews.splice(i, 0, view);
-    });
+      callback();
+      currentAnimationFrame = null
+    }
+    if (currentAnimationFrame) {
+      perform();
+    }
+    else {
+      currentAnimationFrame = requestAnimationFrame(perform);
+    }
   }
 
   //  behave nicely when the cursor data gets messed with
@@ -61,7 +68,7 @@ Template.reactiveScroll.onRendered(function () {
         //  push all items back by one to make room for added
         items.splice(i, 0, new ReactiveVar(doc));
         var nextNode = self.renderedViews[i].firstNode();
-        insert(i, nextNode);
+        insert(i, nextNode, function () {});
         index += 1;
       }
       else {

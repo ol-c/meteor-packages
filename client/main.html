@@ -3,18 +3,30 @@
 </head>
 
 <body>
-  {{#if loggingIn}}
-  
-  {{else}}{{#if currentUser}}
-    <div id="left-pane">
-      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="anything" vertical=true}}
-    </div>
-    <div id="right-pane">
+  <div id="demo-select-space">
+    <select>
+      <option>loginPage</option>
+      <option>reactiveCarousel</option>
+      <option>reactiveScroll</option>
+    </select>
+  </div>
+  <div id="demo-space">
+    {{#if equals currentDemo "loginPage"}}
+      {{#if currentUser}}
+        <button onclick="Meteor.logout();">log out {{ username }}</button>
+      {{else}}{{#if loggingIn}}
+        logging in...
+      {{else}}
+        {{> loginPage}}
+      {{/if}}{{/if}}
+    {{/if}}
+    {{#if equals currentDemo "reactiveCarousel"}}
+      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="anything"}}
+    {{/if}}
+    {{#if equals currentDemo "reactiveScroll"}}
       {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
-    </div>
-  {{else}}
-    {{> loginPage}}
-  {{/if}}{{/if}}
+    {{/if}}
+  </div>
 </body>
 
 <template name="anything">
