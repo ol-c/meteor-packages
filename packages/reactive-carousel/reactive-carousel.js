@@ -105,42 +105,41 @@ Template.reactiveCarousel.onRendered(function () {
   }
 
   self.move = function (direction) {
+    self.render(true, function () {
+      self.scale = 1;
+      self.dx = 0;
+      self.dy = 0;
 
-    self.scale = 1;
-    self.dx = 0;
-    self.dy = 0;
+      //  only advance the view if there is
+      //  an item for the new current index
+      var nextItem = self.items[self.index + direction];
+      if (nextItem && nextItem.get()) {
+        //  increment index and add new view in proper direction
+        self.index += direction;
+        //  insert and manage views
+        var view = insertForIndex(self.index + direction - self.addedAfterCreated, true);
+        if (direction < 0) {
+          Blaze.remove(views.pop());
+          views.unshift(view);
+        }
+        else {
+          Blaze.remove(views.shift());
+          views.push(view);
+        }
 
-    //  only advance the view if there is
-    //  an item for the new current index
-    var nextItem = self.items[self.index + direction];
-    if (nextItem && nextItem.get()) {
-      //  increment index and add new view in proper direction
-      self.index += direction;
-      //  insert and manage views
-      var view = insertForIndex(self.index + direction - self.addedAfterCreated, true);
-      if (direction < 0) {
-        Blaze.remove(views.pop());
-        views.unshift(view);
+        var itemChangeEvent = $.Event("itemChange", {item : self.items[self.index].get()});
+        container.trigger(itemChangeEvent);
       }
-      else {
-        Blaze.remove(views.shift());
-        views.push(view);
-      }
-
-      var itemChangeEvent = $.Event("itemChange", {item : self.items[self.index].get()});
-      container.trigger(itemChangeEvent);
-    }
-
-    container.addClass('animating');
-    self.render(true);
+    });
   }
 
   var lastDx = self.dx;
   var lastDy = self.dy;
   var lastScale = self.scale;
 
-  self.render = function (animating) {
+  self.render = function (animating, beforeRender) {
     var frame = requestAnimationFrame(function () {
+      if (beforeRender) beforeRender();
       if (nextRenderFrame !== frame) {
         return; //  no need to render unless most recent call
       }
@@ -153,11 +152,15 @@ Template.reactiveCarousel.onRendered(function () {
       }
       if (animating) container.addClass('animating');
       else container.removeClass('animating');
-      container.css({
-        webkitTransformOrigin : '0 0',
-        webkitTransform : 'translate('  + self.dx + 'px, '+ self.dy + 'px) ' 
-                        + 'scale(' + self.scale + ')'
-      });
+      var children = container.children();
+      var width = container.width();
+      for (var i=0; i<children.size(); i++) {
+        $(children[i]).css({
+          webkitTransformOrigin : '0 0',
+          webkitTransform : 'translate('  + ((-width + width*i)*self.scale + self.dx) + 'px, '+ self.dy + 'px) ' 
+                          + 'scale(' + self.scale + ')'
+        });
+      }
 
       lastDx = self.dx;
       lastDy = self.dy;
@@ -251,13 +254,13 @@ Template.reactiveCarousel.events({
     }
     template.render();
   },
-  'pinch' : function (event, template) {
+  'pinch .reactive-carousel-slide' : function (event, template) {
     var carousel = $(template.firstNode);
 
     //  do not pinch if animating
     if (carousel.hasClass('animating')) return;
 
-    var offset = carousel.offset();
+    var offset = $(carousel.children()[1]).offset();
 
     var offX = (event.x - offset.left);
     var offY = (event.y - offset.top );

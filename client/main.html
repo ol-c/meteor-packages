@@ -21,7 +21,7 @@
       {{/if}}{{/if}}
     {{/if}}
     {{#if equals currentDemo "reactiveCarousel"}}
-      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="anything"}}
+      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="randomSize"}}
     {{/if}}
     {{#if equals currentDemo "reactiveScroll"}}
       {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
@@ -34,5 +34,5 @@
 </template>
 
 <template name="randomSize">
-  <div>{{ index }}</div>
+  <div style="width:{{width}}; height:{{height}}; margin:5%; background:#EEEEEE;">{{ index }}</div>
 </template>
