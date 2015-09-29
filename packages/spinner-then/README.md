@@ -1,0 +1,1 @@
+template helper to add a spinner as the src of an image while it loads

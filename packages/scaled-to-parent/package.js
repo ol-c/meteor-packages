@@ -1,8 +1,8 @@
 Package.describe({
-  name: 'jasonford:reactive-carousel',
-  version: '0.1.5',
+  name: 'jasonford:scaled-to-parent',
+  version: '0.0.1',
   // Brief, one-line summary of the package.
-  summary: 'Fully reactive carousel that renders only the previous, current and next item of a cursor.',
+  summary: 'scale any content (including flowing content like text) to fit parent',
   // URL to the Git repository containing the source code for this package.
   git: '',
   // By default, Meteor will default to using README.md for documentation.
@@ -11,20 +11,20 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('1.1.0.3');
+  api.versionsFrom('1.2.0.1');
+  api.use('ecmascript');
   api.use([
-    'templating',
-    'reactive-var'
-  ], 'client');
+    'templating'
+  ], 'client')
   api.addFiles([
-    'reactive-carousel.html',
-    'reactive-carousel.css',
-    'reactive-carousel.js'
+    'scaled-to-parent.html',
+    'scaled-to-parent.js',
   ], 'client');
 });
 
 Package.onTest(function(api) {
+  api.use('ecmascript');
   api.use('tinytest');
-  api.use('jasonford:reactive-carousel');
-  api.addFiles('reactive-carousel-tests.js');
+  api.use('jasonford:scaled-to-parent');
+  api.addFiles('scaled-to-parent-tests.js');
 });

@@ -96,9 +96,6 @@ Template.reactiveCarousel.onRendered(function () {
     
     if (waitOnTransition) {
       $(view.firstNode()).css('visibility', 'hidden');
-      container.one('transitionend', function (event) {
-        $(view.firstNode()).css('visibility', 'visible');
-      });
     }
 
     return view;
@@ -138,16 +135,18 @@ Template.reactiveCarousel.onRendered(function () {
   var lastScale = self.scale;
 
   self.render = function (animating, beforeRender) {
+    if (animating) self.animating = true;
     var frame = requestAnimationFrame(function () {
       if (beforeRender) beforeRender();
       if (nextRenderFrame !== frame) {
         return; //  no need to render unless most recent call
       }
-      if (lastDx    === self.dx
-      &&  lastDy    === self.dy
-      &&  lastScale === self.scale) {
+      if (lastDx    === parseInt(self.dx)
+      &&  lastDy    === parseInt(self.dy)
+      &&  lastScale === Math.round(self.scale*1000)/1000) {
         //  no need to render. in fact if we do, the
         //  transitionend will not be triggered
+        self.animating = false;
         return;
       }
       if (animating) container.addClass('animating');
@@ -157,21 +156,24 @@ Template.reactiveCarousel.onRendered(function () {
       for (var i=0; i<children.size(); i++) {
         $(children[i]).css({
           webkitTransformOrigin : '0 0',
-          webkitTransform : 'translate('  + ((-width + width*i)*self.scale + self.dx) + 'px, '+ self.dy + 'px) ' 
-                          + 'scale(' + self.scale + ')'
+          webkitTransform : 'translate('  + parseInt((-width + width*i)*self.scale + self.dx) + 'px, '+ parseInt(self.dy) + 'px) ' 
+                          + 'scale(' + (Math.round(self.scale*1000)/1000) + ')'
         });
       }
 
-      lastDx = self.dx;
-      lastDy = self.dy;
-      lastScale = self.scale;
+      //  ensure all children are visible
+      $(children[1]).one('transitionend', function () {
+        self.animating = false;
+        container.removeClass('animating');
+        container.children().css('visibility', 'visible');
+      });
+
+      lastDx = parseInt(self.dx);
+      lastDy = parseInt(self.dy);
+      lastScale = Math.round(self.scale*1000)/1000;
     });
     nextRenderFrame = frame;
   }
-
-  container.on('transitionend', function () {
-    container.removeClass('animating');
-  });
 
   console.log('time to finish rendering ' + (new Date() - self.timeCreated));
 });
@@ -185,7 +187,7 @@ Template.reactiveCarousel.events({
     var carousel = $(template.firstNode);
 
     //  do not tap if animating
-    if (carousel.hasClass('animating')) return;
+    if (template.animating) return;
 
     var offset = carousel.offset();
 
@@ -209,7 +211,7 @@ Template.reactiveCarousel.events({
     var carousel = $(template.firstNode);
 
     //  do not drag if animating
-    if (carousel.hasClass('animating')) return;
+    if (template.animating) return;
 
     template.dx += event.dx;
     template.dy += event.dy;
@@ -258,12 +260,12 @@ Template.reactiveCarousel.events({
     var carousel = $(template.firstNode);
 
     //  do not pinch if animating
-    if (carousel.hasClass('animating')) return;
+    if (template.animating) return;
 
-    var offset = $(carousel.children()[1]).offset();
+    var offset = carousel.offset();
 
-    var offX = (event.x - offset.left);
-    var offY = (event.y - offset.top );
+    var offX = event.x - (offset.left + template.dx);
+    var offY = event.y - (offset.top + template.dy);
 
     template.dx += (offX * (1 - event.scale));
     template.dy += (offY * (1 - event.scale));
@@ -289,7 +291,7 @@ Template.reactiveCarousel.events({
     var carousel = $(template.firstNode);
 
     //  do not drop if animating
-    if (carousel.hasClass('animating')) return;
+    if (template.animating) return;
 
     var width = carousel.width() * template.scale;
     var height = carousel.height() * template.scale;
@@ -312,9 +314,11 @@ Template.reactiveCarousel.events({
     }
   },
   'swiperight' : function (event, template) {
-    template.move(-1);
+    if (template.animating) return;
+    else template.move(-1);
   },
   'swipeleft' : function (event, template) {
-    template.move(1);
+    if (template.animating) return;
+    else template.move(1);
   },
 });

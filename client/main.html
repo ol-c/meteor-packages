@@ -5,9 +5,12 @@
 <body>
   <div id="demo-select-space">
     <select>
+      <option>{{currentDemo}}</option>
       <option>loginPage</option>
       <option>reactiveCarousel</option>
       <option>reactiveScroll</option>
+      <option>fittedText</option>
+      <option>imageLoader</option>
     </select>
   </div>
   <div id="demo-space">
@@ -26,11 +29,22 @@
     {{#if equals currentDemo "reactiveScroll"}}
       {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
     {{/if}}
+    {{#if equals currentDemo "fittedText"}}
+      {{> fittedText text=randomText}}
+    {{/if}}
+    {{#if equals currentDemo "imageLoader"}}
+      <img src="{{ spinnerThen '/images/test.png'}}" />
+    {{/if}}
+ 
   </div>
 </body>
 
 <template name="anything">
   {{ index }}
+</template>
+
+<template name="simpleText">
+  {{ this }}
 </template>
 
 <template name="randomSize">
