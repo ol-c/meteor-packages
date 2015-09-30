@@ -1,0 +1,1 @@
+usage: $(el).on('elementresize');

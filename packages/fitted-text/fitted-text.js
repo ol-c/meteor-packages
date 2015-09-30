@@ -86,8 +86,13 @@ function fitContent(element, options) {
         });
         $(element).css({opacity : 1});
     }
-    requestAnimationFrame(fit);
-    parentChange(element, fit);
+    var mostRecentFrame = requestAnimationFrame(fit);
+    $(element).on('elementresize', function () {
+      var frame = requestAnimationFrame(function () {
+        if (frame === mostRecentFrame) fit();
+      });
+      mostRecentFrame = frame;
+    });
 }
 
 Template.fittedText.onRendered(function () {

@@ -1,5 +1,5 @@
 Package.describe({
-  name: 'jasonford:fitted-text',
+  name: 'jasonford:element-resize-event',
   version: '0.0.1',
   // Brief, one-line summary of the package.
   summary: '',
@@ -11,21 +11,21 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('1.2.0.1');
+  api.versionsFrom('1.2.0.2');
   api.use([
     'ecmascript',
-    'templating',
-    'jasonford:element-resize-event'
+    'jquery'
   ], 'client');
   api.addFiles([
-    'fitted-text.html',
-    'fitted-text.js'
+    'ElementQueries.js',
+    'ResizeSensor.js',
+    'element-resize-event.js'
   ], 'client');
 });
 
 Package.onTest(function(api) {
   api.use('ecmascript');
   api.use('tinytest');
-  api.use('jasonford:fitted-text');
-  api.addFiles('fitted-text-tests.js');
+  api.use('jasonford:element-resize-event');
+  api.addFiles('element-resize-event-tests.js');
 });

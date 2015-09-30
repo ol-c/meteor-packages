@@ -134,14 +134,15 @@ Template.reactiveCarousel.onRendered(function () {
   var lastDy;
   var lastScale;
 
-  self.render = function (animating, beforeRender) {
+  self.render = function (animating, beforeRender, force) {
     if (animating) self.animating = true;
     var frame = requestAnimationFrame(function () {
       if (beforeRender) beforeRender();
       if (nextRenderFrame !== frame) {
         return; //  no need to render unless most recent call
       }
-      if (lastDx    === parseInt(self.dx)
+      if (!force
+      &&  lastDx    === parseInt(self.dx)
       &&  lastDy    === parseInt(self.dy)
       &&  lastScale === Math.round(self.scale*1000)/1000) {
         //  no need to render. in fact if we do, the
@@ -151,8 +152,9 @@ Template.reactiveCarousel.onRendered(function () {
       }
       if (animating) container.addClass('animating');
       else container.removeClass('animating');
-      var children = container.children();
+      var children = container.children('.reactive-carousel-slide');
       var width = container.width();
+
       for (var i=0; i<children.size(); i++) {
         $(children[i]).css({
           webkitTransformOrigin : '0 0',
@@ -165,7 +167,7 @@ Template.reactiveCarousel.onRendered(function () {
       $(children[1]).one('transitionend', function () {
         self.animating = false;
         container.removeClass('animating');
-        container.children().css('visibility', 'visible');
+        children.css('visibility', 'visible');
       });
 
       lastDx = parseInt(self.dx);
@@ -174,7 +176,11 @@ Template.reactiveCarousel.onRendered(function () {
     });
     nextRenderFrame = frame;
   }
+  //  render so initial transform is set
   self.render();
+  $(container).on('elementresize', function () {
+    self.render(false, false, true);
+  });
   console.log('time to finish rendering ' + (new Date() - self.timeCreated));
 });
 
@@ -191,8 +197,8 @@ Template.reactiveCarousel.events({
 
     var offset = carousel.offset();
 
-    var offX = (event.x - offset.left);
-    var offY = (event.y - offset.top );
+    var offX = event.x - (offset.left + template.dx);
+    var offY = event.y - (offset.top  + template.dy);
 
     if (template.scale > 1) {
       template.dx = 0;
@@ -200,9 +206,9 @@ Template.reactiveCarousel.events({
       template.scale = 1;
     }
     else {
+      template.dx -= (offX * (2 - template.scale));
+      template.dy -= (offY * (2 - template.scale));
       template.scale = 2;
-      template.dx += (offX * (1 - 2));
-      template.dy += (offY * (1 - 2));
     }
 
     template.render(true);
@@ -267,8 +273,8 @@ Template.reactiveCarousel.events({
     var offX = event.x - (offset.left + template.dx);
     var offY = event.y - (offset.top + template.dy);
 
-    template.dx += (offX * (1 - event.scale));
-    template.dy += (offY * (1 - event.scale));
+    template.dx -= (offX * (event.scale - 1));
+    template.dy -= (offY * (event.scale - 1));
 
     template.scale *= event.scale;
     if (template.scale < 1/3) {
@@ -312,6 +318,14 @@ Template.reactiveCarousel.events({
 
       template.render(true);
     }
+  },
+  'mousewheel' : function (event, template) {
+    var dragEvent = $.Event('drag', {
+      dx : -event.originalEvent.deltaX,
+      dy : -event.originalEvent.deltaY
+    });
+
+    //$(event.target).trigger(dragEvent);
   },
   'swiperight' : function (event, template) {
     if (template.animating) return;

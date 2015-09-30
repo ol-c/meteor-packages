@@ -14,7 +14,8 @@ Package.onUse(function(api) {
   api.versionsFrom('1.1.0.3');
   api.use([
     'templating',
-    'reactive-var'
+    'reactive-var',
+    'jasonford:element-resize-event'
   ], 'client');
   api.addFiles([
     'reactive-carousel.html',
