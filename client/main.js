@@ -1,4 +1,4 @@
-var currentDemo = new ReactiveVar('imageLoader');
+var currentDemo = new ReactiveVar('');
 
 Template.registerHelper('currentDemo', function () {
   return currentDemo.get();

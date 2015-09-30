@@ -14,10 +14,12 @@ Package.onUse(function(api) {
   api.versionsFrom('1.2.0.1');
   api.use([
     'ecmascript',
+    'reactive-var',
     'templating'
   ], 'client');
   api.addAssets([
-    'spinner.svg'
+    'spinner.svg',
+    'error.svg'
   ],
   'client');
   api.addFiles([

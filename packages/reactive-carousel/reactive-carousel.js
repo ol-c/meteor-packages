@@ -130,9 +130,9 @@ Template.reactiveCarousel.onRendered(function () {
     });
   }
 
-  var lastDx = self.dx;
-  var lastDy = self.dy;
-  var lastScale = self.scale;
+  var lastDx;
+  var lastDy;
+  var lastScale;
 
   self.render = function (animating, beforeRender) {
     if (animating) self.animating = true;
@@ -174,7 +174,7 @@ Template.reactiveCarousel.onRendered(function () {
     });
     nextRenderFrame = frame;
   }
-
+  self.render();
   console.log('time to finish rendering ' + (new Date() - self.timeCreated));
 });
 

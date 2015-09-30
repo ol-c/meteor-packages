@@ -2,7 +2,7 @@ var loaded = {};
 
 Template.registerHelper('spinnerThen', function (src) {
   if (loaded[src]) {
-    return loaded[src].get();
+   return loaded[src].get();
   }
   else {
     loaded[src] = ReactiveVar('/packages/jasonford_spinner-then/spinner.svg');
@@ -11,9 +11,8 @@ Template.registerHelper('spinnerThen', function (src) {
       loaded[src].set(src);
     });
     image.addEventListener('error', function () {
-      current.set('/packages/jasonford_spinner-then/spinner.svg');
+      loaded[src].set('/packages/jasonford_spinner-then/error.svg');
     });
-
     image.src = src;
     return loaded[src].get();
   }

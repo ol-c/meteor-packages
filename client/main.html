@@ -10,7 +10,7 @@
       <option>reactiveCarousel</option>
       <option>reactiveScroll</option>
       <option>fittedText</option>
-      <option>imageLoader</option>
+      <option>spinnerThen</option>
     </select>
   </div>
   <div id="demo-space">
@@ -32,7 +32,7 @@
     {{#if equals currentDemo "fittedText"}}
       {{> fittedText text=randomText}}
     {{/if}}
-    {{#if equals currentDemo "imageLoader"}}
+    {{#if equals currentDemo "spinnerThen"}}
       <img src="{{ spinnerThen '/images/test.png'}}" />
     {{/if}}
  
@@ -48,5 +48,5 @@
 </template>
 
 <template name="randomSize">
-  <div style="width:{{width}}; height:{{height}}; margin:5%; background:#EEEEEE;">{{ index }}</div>
+  <div style="width:{{width}}; height:{{height}}; margin:5%; background:#EEEEEE;">{{> fittedText text=index }}</div>
 </template>
