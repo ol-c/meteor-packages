@@ -83,7 +83,8 @@ function fitContent(element, options) {
             left : left,
             right : right,
             bottom : bottom
-        })
+        });
+        $(element).css({opacity : 1});
     }
     requestAnimationFrame(fit);
     parentChange(element, fit);
