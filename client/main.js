@@ -32,6 +32,12 @@ for (var i=1; i<=1000; i++) {
   });
 }
 
+Meteor.setTimeout(function () {
+  carouselCollection.insert({
+    index : -1
+  });
+}, 5000);
+
 Template.registerHelper('carouselCursor', function () {
   return carouselCollection.find({}, {sort : {index : 1}});
 });

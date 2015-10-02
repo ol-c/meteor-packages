@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:reactive-carousel',
-  version: '0.1.5',
+  version: '0.2.1',
   // Brief, one-line summary of the package.
   summary: 'Fully reactive carousel that renders only the previous, current and next item of a cursor.',
   // URL to the Git repository containing the source code for this package.
@@ -15,7 +15,8 @@ Package.onUse(function(api) {
   api.use([
     'templating',
     'reactive-var',
-    'jasonford:element-resize-event'
+    'jasonford:client-events@0.0.1',
+    'jasonford:element-resize-event@0.0.1'
   ], 'client');
   api.addFiles([
     'reactive-carousel.html',

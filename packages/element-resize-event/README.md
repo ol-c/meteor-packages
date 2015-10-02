@@ -1,1 +1,1 @@
-usage: $(el).on('elementresize');
+usage: $(el).on('elementresize', function () {});

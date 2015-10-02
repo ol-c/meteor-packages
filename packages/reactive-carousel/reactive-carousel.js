@@ -20,7 +20,7 @@ Template.reactiveCarousel.onCreated(function () {
       self.items.splice(i, 0, new ReactiveVar(doc));
       if (self.firstRendered && i <= self.index) {
         self.index += 1;
-        self.addedAfterCreted += 1;
+        self.addedAfterCreated += 1;
       }
       self.lastIndexChange.set(Math.random());
     },

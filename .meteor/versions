@@ -36,10 +36,10 @@ insecure@1.0.4
 jasonford:client-events@0.0.1
 jasonford:element-resize-event@0.0.1
 jasonford:fitted-text@0.0.1
-jasonford:icons@0.0.1
+jasonford:icons@0.0.5
 jasonford:login-page@0.0.4
 jasonford:no-body-scroll@0.0.2
-jasonford:reactive-carousel@0.1.5
+jasonford:reactive-carousel@0.2.0
 jasonford:reactive-scroll@0.1.0
 jasonford:spinner-then@0.0.1
 jquery@1.11.4
