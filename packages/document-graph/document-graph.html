@@ -1,0 +1,22 @@
+<template name="documentGraph">
+  <div class="document-graph">
+    {{#each collection}}
+      {{>documentGraphDocument template=../template data=this}}
+    {{/each}}
+   </div>
+    <canvas class="document-graph-canvas"></canvas>
+</template>
+
+<template name="documentGraphDocument">
+  <div class="document-graph-document">
+    {{>Template.dynamic template=template data=data}}
+  </div>
+</template>
+
+<template name="documentGraphOutLink">
+  <div class="document-graph-out-link"></div>
+</template>
+
+<template name="documentGraphInLink">
+  <div class="document-graph-in-link"></div>
+</template>

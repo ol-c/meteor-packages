@@ -7,6 +7,8 @@ Template.reactiveCarousel.onCreated(function () {
   self.dx = 0;
   self.dy = 0;
   self.cursor = self.data.cursor;
+  self.list   = self.data.list;
+  self.collection = self.data.collection;
   self.index  = self.data.startIndex;
   self.template = Template[self.data.template];
   self.items = [];
@@ -14,40 +16,47 @@ Template.reactiveCarousel.onCreated(function () {
   self.firstRendered = false;
   self.lastIndexChange = new ReactiveVar();
 
-  //  behave nicely when the cursor data gets messed with around index
-  self.handle = self.cursor.observe({
-    addedAt : function (doc, i, before) {
-      self.items.splice(i, 0, new ReactiveVar(doc));
-      if (self.firstRendered && i <= self.index) {
-        self.index += 1;
-        self.addedAfterCreated += 1;
-      }
-      self.lastIndexChange.set(Math.random());
-    },
-    changedAt : function (newDoc, oldDoc, i) {
-      //  change item
-      self.items[i].set(newDoc);
-    },
-    removedAt : function (oldDoc, i) {
-      //  remove from items and from view
-      self.items[i].splice(i, 1);
-    },
-    movedAt : function (doc, fromIndex, toIndex, before) {
-      //  move the item appropriately;
-      self.items.splice(toIndex, 0, self.items.splice(fromIndex, 1));
-      if (self.firstRendered) {
-        if (fromIndex <= self.index) {
-          self.index -= 1;
-          self.addedAfterCreated -= 1;
-        }
-        if (toIndex <= self.index) {
+  if (self.list) {
+
+  }
+  else if (self.cursor) {
+    //  behave nicely when the cursor data gets messed with around index
+    self.handle = self.cursor.observe({
+      addedAt : function (doc, i, before) {
+        self.items.splice(i, 0, new ReactiveVar(doc));
+        if (self.firstRendered && i <= self.index) {
           self.index += 1;
           self.addedAfterCreated += 1;
         }
+        self.lastIndexChange.set(Math.random());
+      },
+      changedAt : function (newDoc, oldDoc, i) {
+        //  change item
+        self.items[i].set(newDoc);
+      },
+      removedAt : function (oldDoc, i) {
+        //  remove from items and from view
+        self.items[i].splice(i, 1);
+      },
+      movedAt : function (doc, fromIndex, toIndex, before) {
+        //  move the item appropriately;
+        self.items.splice(toIndex, 0, self.items.splice(fromIndex, 1));
+        if (self.firstRendered) {
+          if (fromIndex <= self.index) {
+            self.index -= 1;
+            self.addedAfterCreated -= 1;
+          }
+          if (toIndex <= self.index) {
+            self.index += 1;
+            self.addedAfterCreated += 1;
+          }
+        }
+        self.lastIndexChange.set(Math.random());
       }
-      self.lastIndexChange.set(Math.random());
-    }
-  });
+    });
+  } else {
+    throw new Error('reactive carousel requires a cursor or a list of ids');
+  }
   console.log('time to create ' + (new Date() - self.timeCreated));
 });
 
@@ -66,17 +75,28 @@ Template.reactiveCarousel.onRendered(function () {
 
   function insertForIndex(index, waitOnTransition) {
     function item() {
-      self.lastIndexChange.get();
-      if (self.items[index + self.addedAfterCreated]) {
-        var item = self.items[index + self.addedAfterCreated].get();
-        if (index == self.index) {
-          self.firstRendered = true;
-          var itemChangeEvent = $.Event("itemChange", {item : item});
-          container.trigger(itemChangeEvent);
-          console.log('time to first render ' + (new Date() - self.timeCreated));
-        }
-        return item;
+      self.lastIndexChange.get(); //  ensures re-evaluation on last index change
+
+      var item;
+      var i = index + self.addedAfterCreated;
+
+      if (self.list) {
+        item = self.collection.findOne(self.list[i]);
       }
+      else if (self.items[i]) {
+        item = self.items[i].get();
+      }
+
+      if (item && index == self.index && !self.firstRendered) {
+        self.firstRendered = true;
+        var itemChangeEvent = $.Event("itemchange", {
+          item : item,
+        });
+        container.trigger(itemChangeEvent);
+        console.log('time to first render ' + (new Date() - self.timeCreated));
+      }
+
+      return item;
     }
 
     var nextNode;
@@ -109,8 +129,15 @@ Template.reactiveCarousel.onRendered(function () {
 
       //  only advance the view if there is
       //  an item for the new current index
-      var nextItem = self.items[self.index + direction];
-      if (nextItem && nextItem.get()) {
+      var nextItem;
+      if (self.cursor) {
+        nextItem = self.items[self.index + direction];
+        if (nextItem) nextItem = nextItem.get();
+      }
+      else if (self.list) {
+        nextItem = self.collection.findOne(self.list[self.index + direction]);
+      }
+      if (nextItem) {
         //  increment index and add new view in proper direction
         self.index += direction;
         //  insert and manage views
@@ -124,7 +151,10 @@ Template.reactiveCarousel.onRendered(function () {
           views.push(view);
         }
 
-        var itemChangeEvent = $.Event("itemChange", {item : self.items[self.index].get()});
+        var itemChangeEvent = $.Event("itemchange", {
+          item : nextItem,
+          index : self.index
+        });
         container.trigger(itemChangeEvent);
       }
     });
@@ -176,16 +206,18 @@ Template.reactiveCarousel.onRendered(function () {
     });
     nextRenderFrame = frame;
   }
+
   //  render so initial transform is set
   self.render();
   $(container).on('elementresize', function () {
     self.render(false, false, true);
   });
+
   console.log('time to finish rendering ' + (new Date() - self.timeCreated));
 });
 
 Template.reactiveCarousel.onDestroyed(function () {
-  this.handle.stop();
+  if (this.handle) this.handle.stop();
 })
 
 Template.reactiveCarousel.events({
@@ -223,8 +255,17 @@ Template.reactiveCarousel.events({
     template.dy += event.dy;
 
     var exposedDirection = template.dx / Math.abs(template.dx);
-    var exposedItem = template.items[template.index - exposedDirection];
-    if (exposedItem && exposedItem.get()) {
+    var exposedItem;
+
+    if (template.cursor) {
+      exposedItem = template.items[template.index - exposedDirection];
+      if (exposedItem) exposedItem = exposedItem.get();
+    }
+    else if (template.list){
+      exposedItem = template.collection.findOne(template.list[template.index - exposedDirection]);
+    }
+
+    if (exposedItem) {
       //  there is an element in the space that is exposed
     }
     else {

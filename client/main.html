@@ -8,9 +8,11 @@
       <option>{{currentDemo}}</option>
       <option>loginPage</option>
       <option>reactiveCarousel</option>
+      <option>reactiveCarousel with list</option>
       <option>reactiveScroll</option>
       <option>fittedText</option>
       <option>spinnerThen</option>
+      <option>documentGraph</option>
     </select>
   </div>
   <div id="demo-space">
@@ -26,6 +28,9 @@
     {{#if equals currentDemo "reactiveCarousel"}}
       {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="randomSize"}}
     {{/if}}
+    {{#if equals currentDemo "reactiveCarousel with list"}}
+      {{> reactiveCarousel list=carouselList collection=carouselCollection startIndex=5 template="randomSize"}}
+    {{/if}}
     {{#if equals currentDemo "reactiveScroll"}}
       {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
     {{/if}}
@@ -35,9 +40,18 @@
     {{#if equals currentDemo "spinnerThen"}}
       <img src="{{ spinnerThen '/images/test.png'}}" />
     {{/if}}
+    {{#if equals currentDemo "documentGraph"}}
+      {{> documentGraph collection=documentGraphCollection template="documentGraphExample"}}
+    {{/if}}
  
   </div>
 </body>
+
+<template name="documentGraphExample">
+  {{>randomSize}}
+  {{>documentGraphInLink  id=randomId}}
+  {{>documentGraphOutLink id=randomId}}
+</template>
 
 <template name="anything">
   {{ index }}
@@ -48,5 +62,7 @@
 </template>
 
 <template name="randomSize">
-  <div style="width:{{width}}; height:{{height}}; margin:5%; background:#EEEEEE;">{{> fittedText text=index }}</div>
+  <div style="width:{{width}}; height:{{height}}; background:#EEEEEE; border:1px solid black;">
+    {{> fittedText text=index }}
+  </div>
 </template>

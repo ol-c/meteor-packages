@@ -1,10 +1,10 @@
 Package.describe({
   name: 'jasonford:reactive-carousel',
-  version: '0.2.1',
+  version: '0.4.4',
   // Brief, one-line summary of the package.
   summary: 'Fully reactive carousel that renders only the previous, current and next item of a cursor.',
   // URL to the Git repository containing the source code for this package.
-  git: '',
+  git: 'https://github.com/ol-c/meteor-packages.git',
   // By default, Meteor will default to using README.md for documentation.
   // To avoid submitting documentation, set this field to null.
   documentation: 'README.md'

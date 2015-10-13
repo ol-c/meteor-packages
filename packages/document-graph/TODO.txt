@@ -1,0 +1,3 @@
+X documents pushed into view
+  scale documents to fit well in view
+  allow documents to be individually zoomable

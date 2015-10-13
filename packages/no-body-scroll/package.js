@@ -1,10 +1,10 @@
 Package.describe({
   name: 'jasonford:no-body-scroll',
-  version: '0.0.2',
+  version: '0.0.3',
   // Brief, one-line summary of the package.
   summary: 'disable scrolling and rubber band edge behavior on the body element',
   // URL to the Git repository containing the source code for this package.
-  git: '',
+  git: 'https://github.com/ol-c/meteor-packages.git',
   // By default, Meteor will default to using README.md for documentation.
   // To avoid submitting documentation, set this field to null.
   documentation: 'README.md'
