@@ -21,6 +21,7 @@ Template.documentGraph.onCreated(function () {
   self.idToOutLink = {};
 
   self.margin = 20;
+  self.edgeConstraintStrength = 0.1
 
   self.nodes = self.force.nodes();
   self.links = self.force.links();
@@ -76,10 +77,10 @@ Template.documentGraph.onRendered(function () {
 
     //  push overlapping nodes off of eachother
     self.nodes.forEach(function (node1) {
-      if (node1.x - node1.w/2 < self.margin) node1.x += (node1.w/2 - node1.x + self.margin) * alpha;
-      if (node1.x + node1.w/2 > self.width - self.margin) node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha;
+      if (node1.x - node1.w/2 < self.margin) node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
+      if (node1.x + node1.w/2 > self.width - self.margin) node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
       if (node1.y - node1.h/2 < self.margin) node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
-      if (node1.y + node1.h/2 > self.height - self.margin) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha;
+      if (node1.y + node1.h/2 > self.height - self.margin) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha * self.edgeConstraintStrength;
 
       node1.overlapping.forEach(function (node2) {
         var r = self.margin + Math.sqrt( Math.pow(node1.w/2 + node2.w/2, 2) + Math.pow(node1.h/2 + node2.h/2, 2) );

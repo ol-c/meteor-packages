@@ -8,6 +8,12 @@ Template.registerHelper('randomText', function () {
   return 'this is not yet random text';
 });
 
+Template.registerHelper('overlayData', function () {
+  return {
+    index : 'overlay...'
+  };
+});
+
 Template.registerHelper('username', function () {
   return Meteor.user().username;
 });
@@ -20,6 +26,8 @@ Template.registerHelper('randomId', function () {
   return 'id' + Math.floor(Math.random() * 10);
 });
 
+var ratingBarRating = new ReactiveVar(0);
+
 Template.body.helpers({
   carouselCollection : function () {
     return carouselCollection;
@@ -29,6 +37,9 @@ Template.body.helpers({
   },
   documentGraphCollection : function () {
     return documentGraphCollection.find({});
+  },
+  ratingBarRating : function () {
+    return ratingBarRating;
   }
 });
 

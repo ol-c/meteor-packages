@@ -1,0 +1,10 @@
+<template name="overlayButton">
+  {{#if active.get }}
+    {{> Template.dynamic template=activeTemplate}}
+    <div class="overlay-button-overlay">
+      {{> Template.dynamic template=overlay data=data}}
+    </div>
+  {{else}}
+    {{> Template.dynamic template=inactiveTemplate}}
+  {{/if}}
+</template>

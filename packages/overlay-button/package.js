@@ -1,28 +1,32 @@
 Package.describe({
-  name: 'jasonford:client-events',
-  version: '0.1.5',
+  name: 'jasonford:overlay-button',
+  version: '0.0.1',
   // Brief, one-line summary of the package.
-  summary: 'triggers more developer friendly client touch events',
+  summary: 'simple utility for creating buttons that produce overlays, and a convenient way to remove them',
   // URL to the Git repository containing the source code for this package.
-  git: 'https://github.com/ol-c/meteor-packages.git',
+  git: '',
   // By default, Meteor will default to using README.md for documentation.
   // To avoid submitting documentation, set this field to null.
   documentation: 'README.md'
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('1.1.0.3');
+  api.versionsFrom('1.2.0.2');
   api.use([
-    'jquery'
+    'templating',
+    'ecmascript',
+    'reactive-var'
   ], 'client');
   api.addFiles([
-    'client-events.js',
-    'client-events.css'
+    'overlay-button.html',
+    'overlay-button.js',
+    'overlay-button.css'
   ], 'client');
 });
 
 Package.onTest(function(api) {
+  api.use('ecmascript');
   api.use('tinytest');
-  api.use('jasonford:client-events');
-  api.addFiles('client-events-tests.js');
+  api.use('jasonford:overlay-button');
+  api.addFiles('overlay-button-tests.js');
 });

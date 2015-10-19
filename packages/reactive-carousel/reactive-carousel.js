@@ -171,7 +171,7 @@ Template.reactiveCarousel.onRendered(function () {
       if (nextRenderFrame !== frame) {
         return; //  no need to render unless most recent call
       }
-      if (!force
+      if (!force //  allow same styles to be applied for resize
       &&  lastDx    === parseInt(self.dx)
       &&  lastDy    === parseInt(self.dy)
       &&  lastScale === Math.round(self.scale*1000)/1000) {
@@ -186,16 +186,21 @@ Template.reactiveCarousel.onRendered(function () {
       var width = container.width();
 
       for (var i=0; i<children.size(); i++) {
-        $(children[i]).css({
+        var style = {
           webkitTransformOrigin : '0 0',
           webkitTransform : 'translate('  + parseInt((-width + width*i)*self.scale + self.dx) + 'px, '+ parseInt(self.dy) + 'px) ' 
                           + 'scale(' + (Math.round(self.scale*1000)/1000) + ')'
-        });
+        }
+        if (self.animating) {
+          style.webkitTransition = "300ms ease-out";
+        }
+        $(children[i]).css(style);
       }
 
       //  ensure all children are visible
       $(children[1]).one('transitionend', function () {
         self.animating = false;
+        container.children().css('-webkit-transition', 'none');
         container.removeClass('animating');
         children.css('visibility', 'visible');
       });
@@ -248,7 +253,6 @@ Template.reactiveCarousel.events({
   'drag' : function (event, template) {
     var carousel = $(template.firstNode);
 
-    //  do not drag if animating
     if (template.animating) return;
 
     template.dx += event.dx;
@@ -334,6 +338,34 @@ Template.reactiveCarousel.events({
 
     template.render();
   },
+  'touch' : function (event, template) {
+    template.animating = false;
+
+    var carousel = $(template.firstNode);
+
+    //  do not drop if animating
+    if (template.animating) return;
+
+    var width = carousel.width() * template.scale;
+    var height = carousel.height() * template.scale;
+
+    if (template.dx > carousel.width()/2) {
+      template.move(-1);
+    }
+    else if (template.dx + width < carousel.width()/2) {
+      template.move(1);
+    }
+    else {
+      if (template.scale < 1.1) {
+        //  only keep significant scales above scale 1 (so edge drag behavior stays nice)
+        template.scale = 1;
+      }
+      template.dx = Math.max(width/template.scale - width, Math.min(0, template.dx));
+      template.dy = Math.max(height/template.scale - height, Math.min(0, template.dy));
+
+      template.render(true);
+    }
+  }, 
   'drop' : function (event, template) {
     var carousel = $(template.firstNode);
 

@@ -1,0 +1,26 @@
+<template name="ratingBar">
+  <div class="rating-bar">
+  {{#each rangeList}}<div
+      class="
+        rating-bar-icon
+        {{#if greaterThan ../rating.get this}}
+          {{ ../activeStyle }}
+        {{else}}
+          {{ ../inactiveStyle }}
+        {{/if}}"
+      style="
+        width         : 48px;
+        max-width     : {{ percentWidth }}%;
+        padding-left  : {{ horizontalPadding }}%;
+        padding-right : {{ horizontalPadding }}%;
+        height        : 100%;
+        display       : inline-block;
+      ">
+      {{#if greaterThan ../rating.get this}}
+        {{> Template.dynamic template=../activeTemplate}}
+      {{else}}
+        {{> Template.dynamic template=../inactiveTemplate}}
+      {{/if}}
+      </div>{{/each}}
+  </div>
+</template>

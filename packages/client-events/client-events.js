@@ -9,36 +9,50 @@ $(function () {
     return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
 	}
 
-	$(document).on('touchstart', function (startEvent) {
+  $(document).on('touchstart', function (startEvent) {
     touchInterface = true;
-		var startTime = (new Date()).getTime();
-		var x1 = startEvent.originalEvent.touches[0].pageX;
-		var y1 = startEvent.originalEvent.touches[0].pageY;
-		$(document).one('touchend touchcancel', function (endEvent) {
-			var x2 = endEvent.originalEvent.changedTouches[0].pageX;
-			var y2 = endEvent.originalEvent.changedTouches[0].pageY;
-      var withinTimeThreshold = (new Date()).getTime() - startTime < tapTimeThreshold;
-			var withinDistanceThreshold = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2)) < tapDistanceThreshold;
-			var sameTarget = startEvent.target === endEvent.target;
+    var startTime = (new Date()).getTime();
+    var x1 = startEvent.originalEvent.touches[0].pageX;
+    var y1 = startEvent.originalEvent.touches[0].pageY;
 
-			if (sameTarget
-			&&  withinTimeThreshold
-			&&  withinDistanceThreshold) {
+    var touchEvent = $.Event('touch', {
+      x : x1,
+      y : y1
+    });
+    $(startEvent.target).trigger(touchEvent);
+
+    $(document).one('touchend touchcancel', function (endEvent) {
+      var x2 = endEvent.originalEvent.changedTouches[0].pageX;
+      var y2 = endEvent.originalEvent.changedTouches[0].pageY;
+      var withinTimeThreshold = (new Date()).getTime() - startTime < tapTimeThreshold;
+      var withinDistanceThreshold = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2)) < tapDistanceThreshold;
+      var sameTarget = startEvent.target === endEvent.target;
+
+      if (sameTarget
+      &&  withinTimeThreshold
+      &&  withinDistanceThreshold) {
         var tapEvent = $.Event('tap', {
           x : x1,
           y : y1
         });
-				$(endEvent.target).trigger(tapEvent);
-			}
-		});
-	});
+        $(endEvent.target).trigger(tapEvent);
+      }
+    });
+  });
 
-  $(document).on('mousedown', function (startEvent) {
+  $(window).on('mousedown', function (startEvent) {
     if (touchInterface) return;
     var startTime = (new Date()).getTime();
     var x1 = startEvent.originalEvent.pageX;
     var y1 = startEvent.originalEvent.pageY;
-    $(document).one('mouseup', function (endEvent) {
+
+    var touchEvent = $.Event('touch', {
+      x : x1,
+      y : y1
+    });
+    $(startEvent.target).trigger(touchEvent);
+
+    $(window).one('mouseup', function (endEvent) {
       var x2 = endEvent.originalEvent.pageX;
       var y2 = endEvent.originalEvent.pageY;
       var withinTimeThreshold = (new Date()).getTime() - startTime < tapTimeThreshold;
@@ -138,29 +152,98 @@ $(function () {
 
     $(document).one('touchstart touchend touchcancel', function (endEvent) {
       $(document).off('touchmove', drag);
-  });
+    });
 
-  $(document).one('touchend', function (endEvent) {
-    vx.sort();
-    var medianVx = vx[2];
-    if (medianVx > 0.5) {
-      var swiperightEvent = $.Event('swiperight', {
-        vx : medianVx
-      });
-      $(endEvent.target).trigger(swiperightEvent);
-    }
-    else if (medianVx < -0.5) {
-      var swipeleftEvent = $.Event('swipeleft', {
-        vx : medianVx
-      });
-      $(endEvent.target).trigger(swipeleftEvent);
-    }
-    else {
+    $(document).one('touchend', function (endEvent) {
+      vx.sort();
+      var medianVx = vx[2];
+      if (medianVx > 0.5) {
+        var swiperightEvent = $.Event('swiperight', {
+          vx : medianVx
+        });
+        $(endEvent.target).trigger(swiperightEvent);
+      }
+      else if (medianVx < -0.5) {
+        var swipeleftEvent = $.Event('swipeleft', {
+          vx : medianVx
+        });
+        $(endEvent.target).trigger(swipeleftEvent);
+      }
+      else {
         var dropEvent = $.Event('drop', {
           dx : lastX,
           dy : lastY
         });
         $(endEvent.target).trigger(dropEvent);
+      }
+    });
+  });
+
+
+  $(window).on('mousedown', function (startEvent) {
+    var startX = startEvent.originalEvent.screenX;
+    var startY = startEvent.originalEvent.screenY;
+    //  last 5 velocities recorded in x direction
+    var vx = [0,0,0,0,0];
+    var lastT = new Date();
+    var lastD = 0;
+    var firstD = 0;
+
+    var lastX = startX;
+    var lastY = startY;
+
+    function drag(moveEvent) {
+      moveEvent.preventDefault();
+
+      var x = moveEvent.originalEvent.screenX;
+      var y = moveEvent.originalEvent.screenY;
+      var scale = 1;
+      var t = new Date();
+
+      var dx = x - lastX;
+      var dy = y - lastY;
+      var dragEvent = $.Event('drag', {
+        dx : dx,
+        dy : dy
+      });
+
+      $(startEvent.target).trigger(dragEvent);
+
+      vx.shift();
+      vx.push(dx / (t - lastT));
+
+      lastX = x;
+      lastY = y;
+      lastT = t;
+    }
+
+    $(window).on('mousemove', drag);
+
+    $(window).one('mouseup', function (endEvent) {
+      $(window).off('mousemove', drag);
+    });
+
+    $(window).one('mouseup', function (endEvent) {
+      vx.sort();
+      var medianVx = vx[2];
+      if (medianVx > 0.5) {
+        var swiperightEvent = $.Event('swiperight', {
+          vx : medianVx
+        });
+        $(startEvent.target).trigger(swiperightEvent);
+      }
+      else if (medianVx < -0.5) {
+        var swipeleftEvent = $.Event('swipeleft', {
+          vx : medianVx
+        });
+        $(startEvent.target).trigger(swipeleftEvent);
+      }
+      else {
+        var dropEvent = $.Event('drop', {
+          dx : lastX,
+          dy : lastY
+        });
+        $(startEvent.target).trigger(dropEvent);
       }
     });
   });

@@ -13,6 +13,8 @@
       <option>fittedText</option>
       <option>spinnerThen</option>
       <option>documentGraph</option>
+      <option>ratingBar</option>
+      <option>overlayButton</option>
     </select>
   </div>
   <div id="demo-space">
@@ -26,10 +28,10 @@
       {{/if}}{{/if}}
     {{/if}}
     {{#if equals currentDemo "reactiveCarousel"}}
-      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="randomSize"}}
+      {{> reactiveCarousel cursor=carouselCursor startIndex=5 template="fillSize"}}
     {{/if}}
     {{#if equals currentDemo "reactiveCarousel with list"}}
-      {{> reactiveCarousel list=carouselList collection=carouselCollection startIndex=5 template="randomSize"}}
+      {{> reactiveCarousel list=carouselList collection=carouselCollection startIndex=5 template="fillSize"}}
     {{/if}}
     {{#if equals currentDemo "reactiveScroll"}}
       {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
@@ -43,9 +45,35 @@
     {{#if equals currentDemo "documentGraph"}}
       {{> documentGraph collection=documentGraphCollection template="documentGraphExample"}}
     {{/if}}
- 
+    {{#if equals currentDemo "ratingBar"}}
+      {{> ratingBar range=10 activeTemplate="ratingBarIconActive" inactiveTemplate="ratingBarIconInactive" rating=ratingBarRating}}
+    {{/if}}
+    {{#if equals currentDemo "overlayButton"}}
+      {{> overlayButton activeTemplate="overlayButtonIconActive" inactiveTemplate="overlayButtonIconInactive" overlay="overlay" data=overlayData}}
+    {{/if}}
   </div>
 </body>
+
+<template name="overlay">
+  <div class="overlay-button-back">back!</div>
+  {{> randomSize}}
+</template>
+
+<template name="ratingBarIconActive">
+  {{>icon name="star"}}
+</template>
+
+<template name="overlayButtonIconActive">
+  {{>icon name="heart"}}
+</template>
+
+<template name="overlayButtonIconInactive">
+  {{>icon name="pin"}}
+</template>
+
+<template name="ratingBarIconInactive">
+  {{>icon name="x"}}
+</template>
 
 <template name="documentGraphExample">
   {{>randomSize}}
@@ -63,6 +91,12 @@
 
 <template name="randomSize">
   <div style="width:{{width}}; height:{{height}}; background:#EEEEEE; border:1px solid black;">
+    {{> fittedText text=index }}
+  </div>
+</template>
+
+<template name="fillSize">
+  <div style="width:100%; height:100%; background:#EEEEEE; border:1px solid black;">
     {{> fittedText text=index }}
   </div>
 </template>
