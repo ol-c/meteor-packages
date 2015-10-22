@@ -41,6 +41,14 @@ if (Accounts._resetPasswordToken) {
   Session.set('loginCurrentForm', 'recover');
 }
 
+Template.body.events({
+  'tap .logout-button' : function (event, template) {
+    var set = {$set : { "resume.loginTokens" : [] }};
+    Meteor.users.update(Meteor.userId(), set, {multi:true});
+    Meteor.logout();
+  }
+})
+
 Template.loginPage.helpers({
   registering : function () {
     return Session.get('loginCurrentForm') === "register";

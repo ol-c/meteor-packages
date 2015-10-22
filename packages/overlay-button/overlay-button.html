@@ -1,9 +1,14 @@
+<body>
+  {{#each overlayButtonOverlay}}
+    <div class="overlay-button-overlay" data-id="{{ _id }}">
+      {{> Template.dynamic template=overlay data=data}}
+    </div>
+  {{/each}}
+</body>
+
 <template name="overlayButton">
   {{#if active.get }}
     {{> Template.dynamic template=activeTemplate}}
-    <div class="overlay-button-overlay">
-      {{> Template.dynamic template=overlay data=data}}
-    </div>
   {{else}}
     {{> Template.dynamic template=inactiveTemplate}}
   {{/if}}

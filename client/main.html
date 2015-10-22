@@ -10,6 +10,9 @@
       <option>reactiveCarousel</option>
       <option>reactiveCarousel with list</option>
       <option>reactiveScroll</option>
+      <option>reactiveScroll with list</option>
+      <option>reactiveScrollHorizontal</option>
+      <option>reactiveScroll with list horizontal</option>
       <option>fittedText</option>
       <option>spinnerThen</option>
       <option>documentGraph</option>
@@ -20,7 +23,7 @@
   <div id="demo-space">
     {{#if equals currentDemo "loginPage"}}
       {{#if currentUser}}
-        <button onclick="Meteor.logout();">log out {{ username }}</button>
+        {{> loggedInPage }}
       {{else}}{{#if loggingIn}}
         logging in...
       {{else}}
@@ -36,6 +39,15 @@
     {{#if equals currentDemo "reactiveScroll"}}
       {{> reactiveScroll cursor=scrollCursor template="randomSize"}}
     {{/if}}
+    {{#if equals currentDemo "reactiveScroll with list"}}
+      {{> reactiveScroll list=carouselList collection=carouselCollection template="randomSize"}}
+    {{/if}}
+    {{#if equals currentDemo "reactiveScrollHorizontal"}}
+      {{> reactiveScroll cursor=scrollCursor template="randomSize" horizontal=true}}
+    {{/if}}
+    {{#if equals currentDemo "reactiveScroll with list horizontal"}}
+      {{> reactiveScroll list=carouselList collection=carouselCollection template="randomSize" horizontal=true}}
+    {{/if}}
     {{#if equals currentDemo "fittedText"}}
       {{> fittedText text=randomText}}
     {{/if}}
@@ -46,17 +58,27 @@
       {{> documentGraph collection=documentGraphCollection template="documentGraphExample"}}
     {{/if}}
     {{#if equals currentDemo "ratingBar"}}
-      {{> ratingBar range=10 activeTemplate="ratingBarIconActive" inactiveTemplate="ratingBarIconInactive" rating=ratingBarRating}}
+      <div id="rating-bar-container">
+        {{> ratingBar range=10 activeTemplate="ratingBarIconActive" inactiveTemplate="ratingBarIconInactive" rating=ratingBarRating}}
+      </div>
     {{/if}}
     {{#if equals currentDemo "overlayButton"}}
-      {{> overlayButton activeTemplate="overlayButtonIconActive" inactiveTemplate="overlayButtonIconInactive" overlay="overlay" data=overlayData}}
+      <div class="overlay-button-demo">
+        {{> overlayButton activeTemplate="overlayButtonIconActive" inactiveTemplate="overlayButtonIconInactive" overlay="overlay" data=overlayData}}
+      </div>
     {{/if}}
   </div>
 </body>
 
+<template name="loggedInPage">
+  <div class="logout-button">log out in a classy way</div>
+  <button onclick="Meteor.logout();">log out {{ username }}</button>
+</template>
+
 <template name="overlay">
-  <div class="overlay-button-back">back!</div>
-  {{> randomSize}}
+  <div class="overlay-button-back">
+    {{> overlayButton activeTemplate="randomSize" inactiveTemplate="overlayButtonIconInactive" overlay="overlay" data=overlayData}}
+  </div>
 </template>
 
 <template name="ratingBarIconActive">

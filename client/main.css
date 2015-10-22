@@ -8,6 +8,18 @@
   overflow : hidden;
 }
 
+.overlay-button-demo
+{
+  width : 100px;
+  height : 100px;
+}
+
+.overlay-button-overlay
+{
+  background : rgba(0,0,0,0.5);
+}
+
+
 #right-pane
 {
   position : absolute;
@@ -39,4 +51,11 @@
   left : 0;
   right : 0;
   bottom : 0;
+}
+
+#rating-bar-container
+{
+  width : 50%;
+  height : 16px;
+  border : 1px solid black;
 }

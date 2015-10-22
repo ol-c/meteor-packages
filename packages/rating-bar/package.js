@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:rating-bar',
-  version: '0.0.1',
+  version: '0.0.2',
   // Brief, one-line summary of the package.
   summary: 'horizontal rating bar for custom range. Depends on a "rating" reactive variable in parent context.',
   // URL to the Git repository containing the source code for this package.

@@ -9,13 +9,20 @@ $(function () {
     while (target && target.style) {
       //  must be scrollable and have room to
       //  scroll to allow native scrolling
-      if ($(target).css('overflow') == 'scroll'
-      &&  target.scrollHeight > $(target).height()) {
+      var scrolling = false;
+      if ($(target).css('overflow-y') == 'scroll' &&  target.scrollHeight > $(target).height()) {
         var max = target.scrollHeight - $(target).height() - 1;
         var min = 1;
         $(target).scrollTop(Math.min(max, Math.max(min, $(target).scrollTop())))
-        return;
+        scrolling = true;
       }
+      if ($(target).css('overflow-x') == 'scroll' &&  target.scrollWidth > $(target).width()) {
+        var max = target.scrollWidth - $(target).width() - 1;
+        var min = 1;
+        $(target).scrollLeft(Math.min(max, Math.max(min, $(target).scrollLeft())))
+        scrolling = true;
+      }
+      if (scrolling) return;
       target = target.parentNode;
     }
     onScroll = false;
@@ -25,6 +32,8 @@ $(function () {
 
   $('html').on('touchmove', function (event) {
     if (onScroll) {}
-    else event.preventDefault();
+    else {
+      event.preventDefault();
+    }
   });
 });

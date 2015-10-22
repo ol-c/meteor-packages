@@ -21,6 +21,7 @@ Template.ratingBar.helpers({
     return 100/range - 100/range/10;
   }
 });
+
 Template.ratingBar.events({
   'touch .rating-bar-icon' : function (event, template) {
     var rating = $(event.currentTarget).prevAll().size() + 1;

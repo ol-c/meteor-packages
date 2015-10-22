@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:login-page',
-  version: '0.0.5',
+  version: '0.1.2',
   // Brief, one-line summary of the package.
   summary: 'simple unstyled login page for meteor application',
   // URL to the Git repository containing the source code for this package.
@@ -24,6 +24,10 @@ Package.onUse(function(api) {
     'login-page.html',
     'login-page.js',
   ], 'client');
+
+  api.addFiles([
+    'login-page-allow.js',
+  ], ['client', 'server']);
 });
 
 Package.onTest(function(api) {

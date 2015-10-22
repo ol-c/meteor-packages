@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:no-body-scroll',
-  version: '0.0.3',
+  version: '0.1.1',
   // Brief, one-line summary of the package.
   summary: 'disable scrolling and rubber band edge behavior on the body element',
   // URL to the Git repository containing the source code for this package.
