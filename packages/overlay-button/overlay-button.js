@@ -23,6 +23,7 @@ Template.overlayButton.onCreated(function () {
 //  trigger window taps on topmost overlay to get rid of it
 Meteor.startup(function() {
   $(window).on("tap", function(event) {
+    if (event.onOverlayButton) return;
     var overlay = $(event.target).closest('.overlay-button-overlay');
     if ($(event.target).closest('.overlay-button-back').size() === 1) {
       var id = overlay.attr('data-id');
@@ -58,5 +59,6 @@ Template.overlayButton.events({
       overlayButtonOverlay.remove(id);
       template.data.active.set(false);
     }
+    event.onOverlayButton = true;
   }
 });

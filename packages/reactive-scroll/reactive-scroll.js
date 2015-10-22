@@ -113,7 +113,7 @@ Template.reactiveScroll.onRendered(function () {
 });
 
 Template.reactiveScroll.onDestroyed(function () {
-  this.handle.stop();
+  if (this.handle) this.handle.stop();
 })
 
 Template.reactiveScrollItem.onRendered(function () {

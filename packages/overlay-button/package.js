@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:overlay-button',
-  version: '0.3.7',
+  version: '0.3.8',
   // Brief, one-line summary of the package.
   summary: 'simple utility for creating buttons that produce overlays, and a convenient way to remove them',
   // URL to the Git repository containing the source code for this package.
