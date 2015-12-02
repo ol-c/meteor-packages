@@ -13,11 +13,13 @@
       <option>reactiveScroll with list</option>
       <option>reactiveScrollHorizontal</option>
       <option>reactiveScroll with list horizontal</option>
+      <option>reactiveScroll masonry</option>
       <option>fittedText</option>
       <option>spinnerThen</option>
       <option>documentGraph</option>
       <option>ratingBar</option>
       <option>overlayButton</option>
+      <option>json</option>
     </select>
   </div>
   <div id="demo-space">
@@ -48,6 +50,9 @@
     {{#if equals currentDemo "reactiveScroll with list horizontal"}}
       {{> reactiveScroll list=carouselList collection=carouselCollection template="randomSize" horizontal=true}}
     {{/if}}
+    {{#if equals currentDemo "reactiveScroll masonry"}}
+      {{> reactiveScroll list=carouselList collection=carouselCollection template="randomHeightMasonry" masonry=3}}
+    {{/if}}
     {{#if equals currentDemo "fittedText"}}
       {{> fittedText text=randomText}}
     {{/if}}
@@ -66,6 +71,9 @@
       <div class="overlay-button-demo">
         {{> overlayButton activeTemplate="overlayButtonIconActive" inactiveTemplate="overlayButtonIconInactive" overlay="overlay" data=overlayData}}
       </div>
+    {{/if}}
+    {{#if equals currentDemo "json"}}
+      {{> json jsonData}}
     {{/if}}
   </div>
 </body>
@@ -114,6 +122,12 @@
 <template name="randomSize">
   <div style="width:{{width}}; height:{{height}}; background:#EEEEEE; border:1px solid black;">
     {{> fittedText text=index }}
+  </div>
+</template>
+
+<template name="randomHeightMasonry">
+  <div style="width:33%; height:{{ height }}; background:#EEEEEE; border:1px solid black;">
+    {{ index }}
   </div>
 </template>
 

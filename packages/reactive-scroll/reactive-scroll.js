@@ -1,12 +1,12 @@
 Template.reactiveScroll.onRendered(function () {
   var self = this;
   var container = $(self.firstNode);
-  var indicator = $(self.firstNode).children().last();
   var filling = false;
 
   self.cursor = self.data.cursor;
   self.list   = self.data.list;
   self.collection = self.data.collection;
+  self.masonry = self.data.masonry;
 
   self.renderedViews = [];
   self.container = container;
@@ -32,18 +32,20 @@ Template.reactiveScroll.onRendered(function () {
 
   self.fill = function () {
     if (filling) return;
-    var d;
-    var containerD;
-    if (self.data.horizontal) {
-      d = indicator.offset().left - container.offset().left;
-      containerD = container.width();
+    var roomToFill = false;
+
+    var children = container.children();
+    if (children.size() == 0) {
+      roomToFill = true;
+    }
+    else if (self.data.horizontal) {
+      roomToFill = children.last().offset().left - container.offset().left < container.width()*2;
     }
     else {
-      d = indicator.offset().top - container.offset().top;
-      containerD = container.height();
+      roomToFill = children.last().offset().top - container.offset().top < container.height()*2;
     }
-    var nextNode = indicator[0];
-    if (d < containerD * 2) {
+    var nextNode;
+    if (roomToFill) {
       filling = true;
       //  only add the next one if the current one is available
       if (items[index] || (self.list && self.list[index])) {
@@ -54,6 +56,41 @@ Template.reactiveScroll.onRendered(function () {
           self.fill();
         });
       }
+    }
+  }
+
+  var numColumns = self.masonry;
+  var columnHeights = [];
+  for (var i=0; i<numColumns; i++) {
+    columnHeights.push(0);
+  }
+
+  function arrange() {
+    if (self.masonry) {
+      function shortestColumn() {
+        var shortest = 0;
+        var soFar = Infinity;
+        for (var i=0; i<numColumns; i++) {
+          if (soFar > columnHeights[i]) {
+            soFar = columnHeights[i];
+            shortest = i;
+          }
+        }
+        return shortest;
+      }
+      container.children(':not(.masonry-set)').each(function (index, element) {
+        var shortest = shortestColumn();
+        var width = Math.floor(100/self.masonry);
+        $(element).css({
+          position : 'absolute',
+          top : columnHeights[shortest],
+          width : width + '%',
+          left : (width * shortest) + '%'
+        }).addClass('masonry-set');
+
+        var height = $(element).height();
+        columnHeights[shortest] = columnHeights[shortest] + height;
+      });
     }
   }
 
@@ -68,7 +105,8 @@ Template.reactiveScroll.onRendered(function () {
       );
       self.renderedViews.splice(i, 0, view);
       callback();
-      currentAnimationFrame = null
+      currentAnimationFrame = null;
+      arrange();
     }
     if (currentAnimationFrame) {
       perform();
@@ -117,8 +155,7 @@ Template.reactiveScroll.onDestroyed(function () {
 })
 
 Template.reactiveScrollItem.onRendered(function () {
-
-})
+});
 
 Template.reactiveScroll.events({
   'touchmove': function (event, template) {

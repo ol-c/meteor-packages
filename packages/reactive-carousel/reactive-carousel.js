@@ -36,7 +36,7 @@ Template.reactiveCarousel.onCreated(function () {
       },
       removedAt : function (oldDoc, i) {
         //  remove from items and from view
-        self.items[i].splice(i, 1);
+        self.items.splice(i, 1);
       },
       movedAt : function (doc, fromIndex, toIndex, before) {
         //  move the item appropriately;

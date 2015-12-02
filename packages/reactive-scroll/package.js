@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:reactive-scroll',
-  version: '0.2.1',
+  version: '0.3.3',
   // Brief, one-line summary of the package.
   summary: 'render templates for items in a collection on-demand as a user scrolls',
   // URL to the Git repository containing the source code for this package.

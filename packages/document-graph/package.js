@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:document-graph',
-  version: '0.1.0',
+  version: '0.1.2',
   // Brief, one-line summary of the package.
   summary: 'simply view a force directed graph of colletion data with custom templates',
   // URL to the Git repository containing the source code for this package.
@@ -17,7 +17,8 @@ Package.onUse(function(api) {
     'templating',
     'reactive-var',
     'd3js:d3@3.0.0',
-    'jasonford:client-events@0.0.1'
+    'jasonford:client-events@0.0.1',
+    'jasonford:element-resize-event@0.0.1'
   ], 'client');
   api.addFiles([
     'document-graph.html',

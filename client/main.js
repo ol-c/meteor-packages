@@ -4,6 +4,19 @@ Template.registerHelper('currentDemo', function () {
   return currentDemo.get();
 });
 
+Template.registerHelper('jsonData', function () {
+  return {
+    type : 'object',
+    array : [
+      'array item',
+      123,
+      {
+        embeddedObject : true
+      }
+    ]
+  };
+});
+
 Template.registerHelper('randomText', function () {
   return 'this is not yet random text';
 });
@@ -42,6 +55,12 @@ Template.body.helpers({
     return ratingBarRating;
   }
 });
+
+Template.randomHeightMasonry.helpers({
+  height : function () {
+    return (Math.random() * 126 + 64) + 'px';
+  }
+})
 
 Template.body.events({
   'change select' : function  (event, template) {
@@ -122,7 +141,7 @@ function keepAddingCarousel() {
 scrollCollection = new Mongo.Collection(null);
 var i;
 
-for (i=0; i<=100; i++) {
+for (i=0; i<=1000; i++) {
   scrollCollection.insert({
     index : i
   });

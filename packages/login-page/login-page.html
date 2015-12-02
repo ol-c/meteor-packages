@@ -1,5 +1,6 @@
 <template name="loginPage">
   <div id="login-page">
+    <div id="login-page-content">
     {{#if loginDisplayMessage}}
       <div id="login-display-message">{{ loginDisplayMessage }}</div>
     {{/if}}
@@ -26,7 +27,8 @@
       {{else}}
         No login plugins are in use. To add one use "meteor add PACKAGE_NAME".
       {{/if}}
-    {{/if}}{{/if}}
+      {{/if}}{{/if}}
+      </div>
   </div>
 </template>
 

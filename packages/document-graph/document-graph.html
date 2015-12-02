@@ -1,5 +1,5 @@
 <template name="documentGraph">
-  <div class="document-graph">
+  <div class="document-graph" style="position:absolute"><!-- error in element resize code requires absolute here -->
     {{#each collection}}
       {{>documentGraphDocument template=../template data=this}}
     {{/each}}

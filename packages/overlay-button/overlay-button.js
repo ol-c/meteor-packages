@@ -8,12 +8,12 @@ Template.body.helpers({
 
 Template.overlayButton.onCreated(function () {
   var self = this;
-  this.data.active = new ReactiveVar(false);
+  this.active = new ReactiveVar(false);
   this.autorun(function () {
     overlayButtonOverlay.find().observe({
       removed : function (oldDoc) {
         if (oldDoc._id === self.data._id) {
-          self.data.active.set(false);
+          self.active.set(false);
         }
       }
     })
@@ -46,18 +46,24 @@ Meteor.startup(function() {
   });
 });
 
+Template.overlayButton.helpers({
+  active : function () {
+    return Template.instance().active.get();
+  }
+})
+
 Template.overlayButton.events({
   'tap' : function (event, template) {
     var id = template.data._id;
     if (id == undefined || overlayButtonOverlay.findOne(id) == undefined) {
       id = overlayButtonOverlay.insert(template.data);
       template.data._id = id;
-      template.data.active.set(true);
+      template.active.set(true);
       event.overlayButtonId = id;
     }
     else {
       overlayButtonOverlay.remove(id);
-      template.data.active.set(false);
+      template.active.set(false);
     }
     event.onOverlayButton = true;
   }

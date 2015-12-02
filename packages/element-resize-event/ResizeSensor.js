@@ -77,7 +77,7 @@
                 '</div>';
             element.appendChild(element.resizeSensor);
 
-            if (!{fixed: 1, absolute: 1}[getComputedStyle(element, 'position')]) {
+            if (!{fixed: 1, absolute: 1}[$(element).css('position')]) {
                 element.style.position = 'relative';
             }
 

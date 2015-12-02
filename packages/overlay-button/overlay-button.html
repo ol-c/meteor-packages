@@ -7,7 +7,7 @@
 </body>
 
 <template name="overlayButton">
-  {{#if active.get }}
+  {{#if active }}
     {{> Template.dynamic template=activeTemplate}}
   {{else}}
     {{> Template.dynamic template=inactiveTemplate}}

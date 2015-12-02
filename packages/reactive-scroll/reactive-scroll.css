@@ -1,5 +1,10 @@
 /* CSS declarations go here */
 
+.reactive-scroll
+{
+  position : relative;
+}
+
 .reactive-scroll.vertical
 {
   width : 100%;

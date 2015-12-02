@@ -271,6 +271,10 @@ Template.documentGraphDocument.events({
   },
   'drop' : function (event, template) {
     
+  },
+  'elementresize'  : function (event, template) {
+    console.log('resized!');
+    template.nodeData.force.resume();
   }
 });
 
