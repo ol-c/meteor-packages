@@ -273,7 +273,7 @@ Template.documentGraphDocument.events({
     
   },
   'elementresize'  : function (event, template) {
-    console.log('resized!');
+    //  reheat when element resizes
     template.nodeData.force.resume();
   }
 });

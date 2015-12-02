@@ -35,7 +35,7 @@ http@1.1.1
 id-map@1.0.4
 insecure@1.0.4
 jasonford:client-events@0.1.5
-jasonford:document-graph@0.1.2
+jasonford:document-graph@0.2.0
 jasonford:element-resize-event@0.1.0
 jasonford:fitted-text@0.0.2
 jasonford:icons@0.1.0
