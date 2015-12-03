@@ -30,9 +30,31 @@ Template.documentGraph.onCreated(function () {
 Template.documentGraph.onRendered(function () {
   var self = this;
 
-  function doOverlapCircle(a, b) {
-      var r = self.margin + Math.sqrt( Math.pow(a.w/2 + b.w/2, 2) + Math.pow(a.h/2 + b.h/2, 2) );
-      return Math.sqrt(Math.pow(a.x - b.x,2) + Math.pow(a.y - b.y,2)) < r;
+  function angleBetweenCentersAndHorizontal(a, b) {
+    return Math.tan((a.y - b.y)/(a.x - b.x));
+  }
+
+  function desiredCenterDistance(a, b) {
+    var r  = self.margin;
+    
+    //  r based on circle
+    r += Math.sqrt( Math.pow(a.w/2, 2) + Math.pow(a.h/2, 2)); //  part contributed by a
+    r += Math.sqrt( Math.pow(b.w/2, 2) + Math.pow(b.h/2, 2)); //  part contributed by b
+/*
+    //  r based on bounding ellipse with same aspect ratio as box
+    var theta = angleBetweenCentersAndHorizontal(a, b);
+    var arA = (a.w/a.h); // aspect ratio of a
+    var arB = (b.w/b.h); // apsect ratio of b
+    var sinTheta2 = Math.sin(theta)*Math.sin(theta);
+    var cosTheta2 = Math.cos(theta)*Math.cos(theta);
+    r += arA/Math.sqrt(arA*arA*sinTheta2 + cosTheta2); // part contributed by a
+    r += arB/Math.sqrt(arB*arA*sinTheta2 + cosTheta2); // part contributed by b
+*/
+    return r;
+  }
+
+  function centerDistance(a, b) {
+    return Math.sqrt(Math.pow(a.x - b.x,2) + Math.pow(a.y - b.y,2));
   }
 
   function doOverlap(a, b) {
@@ -65,10 +87,22 @@ Template.documentGraph.onRendered(function () {
     var overlappingNodes = [];
     var nodes = self.force.nodes().slice(0);
     var node = nodes.pop();
+
+    
+
+    var lastTouched = { lastTouch : -Infinity };
+    self.force.nodes().forEach(function (nodeData) {
+      if (nodeData.lastTouch > lastTouched.lastTouch) {
+        lastTouched = nodeData;
+      }
+      nodeData.fixed = false;
+    });
+    lastTouched.fixed = true;
+
     while (node) {
       node.overlapping.splice(0, node.overlapping.length);
       for (var i=0; i<nodes.length; i++) {
-        if (doOverlapCircle(node, nodes[i])) {
+        if (centerDistance(node, nodes[i]) < desiredCenterDistance(node, nodes[i])) {
           node.overlapping.push(nodes[i]);
         }
       }
@@ -77,15 +111,18 @@ Template.documentGraph.onRendered(function () {
 
     //  push overlapping nodes off of eachother
     self.nodes.forEach(function (node1) {
-      if (node1.x - node1.w/2 < self.margin) node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
-      if (node1.x + node1.w/2 > self.width - self.margin) node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
-      if (node1.y - node1.h/2 < self.margin) node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
+      //  push node into view
+      if (node1.x - node1.w/2 < self.margin)               node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
+      if (node1.x + node1.w/2 > self.width - self.margin)  node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
+      if (node1.y - node1.h/2 < self.margin)               node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
       if (node1.y + node1.h/2 > self.height - self.margin) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha * self.edgeConstraintStrength;
 
       node1.overlapping.forEach(function (node2) {
-        var r = self.margin + Math.sqrt( Math.pow(node1.w/2 + node2.w/2, 2) + Math.pow(node1.h/2 + node2.h/2, 2) );
-        r -= Math.sqrt(Math.pow(node1.x - node2.x,2) + Math.pow(node1.y - node2.y,2)) - self.margin;
-        
+        // push nodes off of eachother
+        var r  = desiredCenterDistance(node1, node2);
+        //  subtract the distance between node centers so strength of repulsion decreases
+        r -= centerDistance(node1, node2);
+
         var d = r*alpha/2;
 
         if (node2.x < node1.x) {
@@ -230,12 +267,23 @@ Template.documentGraphDocument.onCreated(function () {
 });
 
 Template.documentGraphDocument.onRendered(function () {
+  var template = this;
+
   this.nodeData.w = $(this.firstNode).width();
   this.nodeData.h = $(this.firstNode).height();
   this.nodeData.overlapping = [];
   this.nodeData.context = this.data.data;
   this.nodeData.element = this.firstNode;
   this.nodeData.template = this;
+
+  $(template.nodeData.element).on('elementresize', function (event) {
+    //  reheat when element resizes
+    if (event.target == template.nodeData.element) {
+      template.nodeData.force.resume();
+      template.nodeData.w = $(template.firstNode).width();
+      template.nodeData.h = $(template.firstNode).height();
+    }
+  });
 
   var addNodeEvent = $.Event("addnode", { nodeData : this.nodeData });
   $(this.firstNode).trigger(addNodeEvent);
@@ -260,10 +308,12 @@ Template.documentGraphDocument.events({
   'removeinlink' : function (event, template) {
     event.linkData.document = template;
   },
+  'touch, mouseover' : function (event, template) {
+    template.nodeData.lastTouch = Date.now();
+  },
   'drag' : function (event, template) {
     template.nodeData.px += event.dx;
     template.nodeData.py += event.dy;
-    template.nodeData.fixed = true;
     template.nodeData.force.resume();
   },
   'doubletap' : function (event, template) {
@@ -271,10 +321,6 @@ Template.documentGraphDocument.events({
   },
   'drop' : function (event, template) {
     
-  },
-  'elementresize'  : function (event, template) {
-    //  reheat when element resizes
-    template.nodeData.force.resume();
   }
 });
 

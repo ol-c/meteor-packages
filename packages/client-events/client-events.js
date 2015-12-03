@@ -2,12 +2,18 @@ $(function () {
 
   var touchInterface = false;
 
-	var tapTimeThreshold = 500; // max milliseconds for tap to go from touchstart to touchend
+	var tapTimeThreshold = 300; // max milliseconds for tap to go from touchstart to touchend
 	var tapDistanceThreshold = 8; //  max pixels for tap to move between touchstart and touch end
+  var doubletapTimeThreshold = 300;
+  var doubletapDistanceThreshold = 8;
 
 	function distance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
 	}
+
+  var lastTapData = {
+    time : -Infinity
+  }
 
   $(document).on('touchstart', function (startEvent) {
     touchInterface = true;
@@ -31,11 +37,19 @@ $(function () {
       if (sameTarget
       &&  withinTimeThreshold
       &&  withinDistanceThreshold) {
-        var tapEvent = $.Event('tap', {
+        var tapData = {
           x : x1,
-          y : y1
-        });
+          y : y1,
+          time : Date.now()
+        };
+        var tapEvent = $.Event('tap', tapData);
         $(endEvent.target).trigger(tapEvent);
+        var tapDistance = distance(x1, y1, lastTapData.x, lastTapData.y);
+        if (tapData.time - lastTapData.time < doubletapTimeThreshold && tapDistance < doubletapDistanceThreshold) {
+          var doubletapEvent = $.Event('doubletap', tapData);
+          $(endEvent.target).trigger(doubletapEvent);
+        }
+        lastTapData = tapData;
       }
     });
   });
@@ -62,11 +76,19 @@ $(function () {
       if (sameTarget
       &&  withinTimeThreshold
       &&  withinDistanceThreshold) {
-        var tapEvent = $.Event('tap', {
+        var tapData = {
           x : x1,
-          y : y1
-        });
+          y : y1,
+          time : Date.now()
+        };
+        var tapEvent = $.Event('tap', tapData);
         $(endEvent.target).trigger(tapEvent);
+        var tapDistance = distance(x1, y1, lastTapData.x, lastTapData.y);
+        if (tapData.time - lastTapData.time < doubletapTimeThreshold && tapDistance < doubletapDistanceThreshold) {
+          var doubletapEvent = $.Event('doubletap', tapData);
+          $(endEvent.target).trigger(doubletapEvent);
+        }
+        lastTapData = tapData;
       }
     });
   });

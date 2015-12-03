@@ -1,0 +1,27 @@
+<template name="json">
+{{#if is "object"}}
+  <div class="json-object">
+    &#123;
+    <table>
+      {{#each keys}}
+        <tr class="json-object-item">
+          <td class="json-object-key">{{ this }}</td>
+          <td>:</td>
+          <td>{{> json fromKey this}},</td>
+        </tr>
+      {{/each}}
+    </table>
+  </div>{{#if keys}}<br>{{/if}}&#125;
+{{/if}}<!--
+-->{{#if is "array"}}
+  <div class="json-array">
+    [
+      {{#each this}}
+        <div class="json-array-item">{{> json this}},</div>
+      {{/each}}
+  </div>{{#if this}}<br>{{/if}}]{{/if}}<!--
+-->{{#if is "string"}}<pre class="json-string">"{{ this }}"</pre>{{/if}}<!--
+-->{{#if is "number"}}{{ this }}{{/if}}<!--
+-->{{#if is "date"}}date{{/if}}<!--
+-->{{#if is "boolean"}}{{type}}{{/if}}
+</template>

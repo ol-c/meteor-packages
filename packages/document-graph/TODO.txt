@@ -1,3 +1,4 @@
 X documents pushed into view
+  better document boundary box approximation (oval)
   scale documents to fit well in view
   allow documents to be individually zoomable

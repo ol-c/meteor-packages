@@ -1,0 +1,29 @@
+.json-object,
+.json-array,
+.json-string
+{
+  display : inline-block;
+}
+
+.json-string
+{
+  font-family : inherit;
+  padding : 0;
+  margin : 0;
+}
+
+.json-object-key,
+.json-array-item
+{
+  padding-left : 2ex;
+}
+
+.json-object-key
+{
+  text-align: right;
+}
+
+.json-object-item
+{
+  vertical-align: top;
+}
