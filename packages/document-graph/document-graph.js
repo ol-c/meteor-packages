@@ -13,6 +13,12 @@ Template.documentGraph.onCreated(function () {
       return self.margin + Math.sqrt( Math.pow(from.w + to.w, 2) + Math.pow(from.h + to.h, 2) );
     });
 
+  if (self.data.onCreated) {
+    //  give access to the force graph
+    //  so client can set options
+    self.data.onCreated(self.force);
+  }
+
   self.graph = d3.select(self.firstNode);
 
   self.numNodes = new ReactiveVar(0);
@@ -21,7 +27,7 @@ Template.documentGraph.onCreated(function () {
   self.idToOutLink = {};
 
   self.margin = 20;
-  self.edgeConstraintStrength = 0.1
+  self.edgeConstraintStrength = 1
 
   self.nodes = self.force.nodes();
   self.links = self.force.links();
@@ -29,44 +35,6 @@ Template.documentGraph.onCreated(function () {
 
 Template.documentGraph.onRendered(function () {
   var self = this;
-
-  function angleBetweenCentersAndHorizontal(a, b) {
-    return Math.tan((a.y - b.y)/(a.x - b.x));
-  }
-
-  function desiredCenterDistance(a, b) {
-    var r  = self.margin;
-    
-    //  r based on circle
-    r += Math.sqrt( Math.pow(a.w/2, 2) + Math.pow(a.h/2, 2)); //  part contributed by a
-    r += Math.sqrt( Math.pow(b.w/2, 2) + Math.pow(b.h/2, 2)); //  part contributed by b
-/*
-    //  r based on bounding ellipse with same aspect ratio as box
-    var theta = angleBetweenCentersAndHorizontal(a, b);
-    var arA = (a.w/a.h); // aspect ratio of a
-    var arB = (b.w/b.h); // apsect ratio of b
-    var sinTheta2 = Math.sin(theta)*Math.sin(theta);
-    var cosTheta2 = Math.cos(theta)*Math.cos(theta);
-    r += arA/Math.sqrt(arA*arA*sinTheta2 + cosTheta2); // part contributed by a
-    r += arB/Math.sqrt(arB*arA*sinTheta2 + cosTheta2); // part contributed by b
-*/
-    return r;
-  }
-
-  function centerDistance(a, b) {
-    return Math.sqrt(Math.pow(a.x - b.x,2) + Math.pow(a.y - b.y,2));
-  }
-
-  function doOverlap(a, b) {
-    var l1 = { x : a.x - a.w/2 - self.margin, y : a.y + a.h/2 + self.margin};
-    var r1 = { x : a.x + a.w/2 + self.margin, y : a.y - a.h/2 - self.margin};
-
-    var l2 = { x : b.x - b.w/2 - self.margin, y : b.y + b.h/2 + self.margin};
-    var r2 = { x : b.x + b.w/2 + self.margin, y : b.y - b.h/2 - self.margin};
-
-    // If one rectangle is not on left side of other or one rectanle is not above the other
-    return !(l1.x > r2.x || l2.x > r1.x) && !(l1.y < r2.y || l2.y < r1.y);
-  }
 
   self.width = $(this.firstNode).width();
   self.height = $(this.firstNode).height();
@@ -84,7 +52,6 @@ Template.documentGraph.onRendered(function () {
 
     var alpha = self.force.alpha();
 
-    var overlappingNodes = [];
     var nodes = self.force.nodes().slice(0);
     var node = nodes.pop();
 
@@ -99,10 +66,21 @@ Template.documentGraph.onRendered(function () {
     });
     lastTouched.fixed = true;
 
+    self.nodes.forEach(function (node1) {
+      //  push node into view
+      if (node1.fixed) return;
+      if (node1.x - node1.w/2 < self.margin)               node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
+      if (node1.x + node1.w/2 > self.width - self.margin)  node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
+      if (node1.y - node1.h/2 < self.margin)               node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
+      if (node1.y + node1.h/2 > self.height - self.margin) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha * self.edgeConstraintStrength;
+    });
+
     while (node) {
       node.overlapping.splice(0, node.overlapping.length);
       for (var i=0; i<nodes.length; i++) {
-        if (centerDistance(node, nodes[i]) < desiredCenterDistance(node, nodes[i])) {
+        var overlappingX = Math.abs(node.x - nodes[i].x) < (node.w + nodes[i].w)/2 + self.margin;
+        var overlappingY = Math.abs(node.y - nodes[i].y) < (node.h + nodes[i].h)/2 + self.margin;
+        if (overlappingX && overlappingY) {
           node.overlapping.push(nodes[i]);
         }
       }
@@ -111,43 +89,34 @@ Template.documentGraph.onRendered(function () {
 
     //  push overlapping nodes off of eachother
     self.nodes.forEach(function (node1) {
-      //  push node into view
-      if (node1.x - node1.w/2 < self.margin)               node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
-      if (node1.x + node1.w/2 > self.width - self.margin)  node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
-      if (node1.y - node1.h/2 < self.margin)               node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
-      if (node1.y + node1.h/2 > self.height - self.margin) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha * self.edgeConstraintStrength;
-
       node1.overlapping.forEach(function (node2) {
-        // push nodes off of eachother
-        var r  = desiredCenterDistance(node1, node2);
-        //  subtract the distance between node centers so strength of repulsion decreases
-        r -= centerDistance(node1, node2);
-
-        var d = r*alpha/2;
+        var overlapX = (node1.w + node2.w)/2 - Math.abs(node1.x - node2.x) + self.margin;
+        var overlapY = (node1.h + node2.h)/2 - Math.abs(node1.y - node2.y) + self.margin;
+        overlap = Math.min(overlapX, overlapY);
 
         if (node2.x < node1.x) {
-          if (!node2.fixed) node2.x -= d;
-          if (!node1.fixed) node1.x += d;
+          if (!node2.fixed) node2.x -= overlap*alpha;
+          if (!node1.fixed) node1.x += overlap*alpha;
         }
         else {
-          if (!node2.fixed) node2.x += d;
-          if (!node1.fixed) node1.x -= d;
+          if (!node2.fixed) node2.x += overlap*alpha;
+          if (!node1.fixed) node1.x -= overlap*alpha;
         }
 
         if (node2.y < node1.y) {
-          if (!node2.fixed) node2.y -= d;
-          if (!node1.fixed) node1.y += d;
+          if (!node2.fixed) node2.y -= overlap*alpha;
+          if (!node1.fixed) node1.y += overlap*alpha;
         }
         else {
-          if (!node2.fixed) node2.y += d;
-          if (!node1.fixed) node1.y -= d
+          if (!node2.fixed) node2.y += overlap*alpha;
+          if (!node1.fixed) node1.y -= overlap*alpha;
         }
       });
     });
 
     self.force.nodes().forEach(function (nodeData) {
       $(nodeData.element).css({
-        transform : 'translate(' + Math.round(nodeData.x - nodeData.w/2) + 'px, ' + Math.round(nodeData.y - nodeData.h/2) + 'px)'
+        transform : 'translate(' + Math.round(nodeData.x - nodeData.w/2) + 'px, ' + Math.round(nodeData.y - nodeData.h/2) + 'px) scale(' + nodeData.scale + ')'
       });
     });
 
@@ -159,8 +128,8 @@ Template.documentGraph.onRendered(function () {
       var sourceOffset = source.offset();
       var targetOffset = target.offset();
       context.moveTo(
-        parseInt(sourceOffset.left - self.offset.left + source.width()/2),
-        parseInt(sourceOffset.top  - self.offset.top  + source.height()/2));
+        parseInt(sourceOffset.left - self.offset.left + link.source.w/2),
+        parseInt(sourceOffset.top  - self.offset.top  + link.source.h/2));
       context.lineTo(
         parseInt(targetOffset.left - self.offset.left + link.target.w/2),
         parseInt(targetOffset.top  - self.offset.top  + link.target.h/2));
@@ -191,10 +160,10 @@ Template.documentGraph.events({
   },
   'addnode' : function (event, template) {
 
-    event.nodeData.x  = template.width/2// + (Math.random() - 1) * 1280;
-    event.nodeData.y  = template.height/2// + (Math.random() - 1) * 1280;
-    event.nodeData.px = template.width/2// + (Math.random() - 1) * 1280;
-    event.nodeData.py = template.height/2// + (Math.random() - 1) * 1280;
+    event.nodeData.x  = template.width/2 + (Math.random() - 0.5)*2;
+    event.nodeData.y  = template.height/2 + (Math.random() - 0.5)*2;
+    event.nodeData.px = template.width/2 + (Math.random() - 0.5)*2;
+    event.nodeData.py = template.height/2 + (Math.random() - 0.5)*2;
     event.nodeData.force = template.force;
 
     template.nodes.push(event.nodeData);
@@ -230,8 +199,6 @@ Template.documentGraph.events({
 
     outLinks.push(outLink);
   },
-  'removeoutlink' : function (event, template) {
-  },
   'addinlink' : function (event, template) {
     var inLink = event.linkData;
 
@@ -253,12 +220,41 @@ Template.documentGraph.events({
 
     inLinks.push(inLink);
   },
-  'removeinlink' : function (event, template) {
-  },
   'addlink' : function (event, template) {
     var linkData = event.linkData;
-    template.links.push(linkData);
-    if (template.started) template.force.start();
+    var exists = false;
+    for (var i=0; i<template.links.length; i++) {
+      var link = template.links[i];
+      exists  = linkData.sourceElement == link.sourceElement
+             &&  linkData.source == link.source
+             &&  linkData.target == link.target;
+      // if exact link already exists
+      // we don't need to add a new one
+      if (exists) break;
+    }
+
+    //  TODO: can check existance before this point
+    //  by (in addinlink/addoutlink handler) hashing
+    //  link properties and checking
+    if (!exists) {
+      template.links.push(linkData);
+      if (template.started) template.force.start();
+    }
+  },
+  'removelink' : function (event, template) {
+    var modified = false;
+    for (var i=0; i<template.links.length; i++) {
+      var link = template.links[i];
+      if (link.source.template == event.linkData.document
+      ||  link.target.template == event.linkData.document) {
+        template.links.splice(i, 1);
+        modified = true;
+        i -= 1;
+      }
+    }
+    if (modified) {
+      template.force.start();
+    }
   }
 });
 
@@ -268,9 +264,16 @@ Template.documentGraphDocument.onCreated(function () {
 
 Template.documentGraphDocument.onRendered(function () {
   var template = this;
-
-  this.nodeData.w = $(this.firstNode).width();
-  this.nodeData.h = $(this.firstNode).height();
+  var maxW = 64;
+  var maxH = 64;
+  
+  var w = $(this.firstNode).width();
+  var h = $(this.firstNode).height();
+  var scale = Math.min(maxW/w, maxH/h);
+  scale = 1;
+  this.nodeData.scale = scale;
+  this.nodeData.w = w * scale;
+  this.nodeData.h = h * scale;
   this.nodeData.overlapping = [];
   this.nodeData.context = this.data.data;
   this.nodeData.element = this.firstNode;
@@ -279,9 +282,15 @@ Template.documentGraphDocument.onRendered(function () {
   $(template.nodeData.element).on('elementresize', function (event) {
     //  reheat when element resizes
     if (event.target == template.nodeData.element) {
+      //  keep contained in same width and height
+      var w = $(template.firstNode).width();
+      var h = $(template.firstNode).height();
+      var scale = Math.min(maxW/w, maxH/h);
+      scale = 1;
+      template.nodeData.scale = scale;
+      template.nodeData.w = $(template.firstNode).width() * scale;
+      template.nodeData.h = $(template.firstNode).height() * scale;
       template.nodeData.force.resume();
-      template.nodeData.w = $(template.firstNode).width();
-      template.nodeData.h = $(template.firstNode).height();
     }
   });
 
@@ -308,7 +317,7 @@ Template.documentGraphDocument.events({
   'removeinlink' : function (event, template) {
     event.linkData.document = template;
   },
-  'touch, mouseover' : function (event, template) {
+  'touch, hover' : function (event, template) {
     template.nodeData.lastTouch = Date.now();
   },
   'drag' : function (event, template) {
@@ -324,6 +333,8 @@ Template.documentGraphDocument.events({
   }
 });
 
+//  on rendered
+//////////////////
 
 Template.documentGraphOutLink.onRendered(function () {
   this.linkData = {
@@ -332,11 +343,6 @@ Template.documentGraphOutLink.onRendered(function () {
   };
   var addOutLinkEvent = $.Event("addoutlink", { linkData : this.linkData });
   $(this.firstNode).trigger(addOutLinkEvent);
-});
-
-Template.documentGraphOutLink.onDestroyed(function () {
-  var removeOutLinkEvent = $.Event("removeoutlink", { linkData : this.linkData });
-  $(this.firstNode).trigger(removeOutLinkEvent);
 });
 
 Template.documentGraphInLink.onRendered(function () {
@@ -348,7 +354,21 @@ Template.documentGraphInLink.onRendered(function () {
   $(this.firstNode).trigger(addInLinkEvent);
 });
 
+
+//  on destroyed
+//////////////////
+
+//  the removal of a link happens whenever
+//  the in and/or out link is destroyed
+
+Template.documentGraphOutLink.onDestroyed(function () {
+  console.log('out link removed')
+  var removeOutLinkEvent = $.Event("removelink", { linkData : this.linkData });
+  $(this.linkData.element).trigger(removeOutLinkEvent);
+});
+
 Template.documentGraphInLink.onDestroyed(function () {
-  var removeInLinkEvent = $.Event("removeinlink", { linkData : this.linkData });
-  $(this.firstNode).trigger(removeInLinkEvent);
+  console.log('in link removed')
+  var removeInLinkEvent = $.Event("removelink", { linkData : this.linkData });
+  $(this.linkData.element).trigger(removeInLinkEvent);
 });

@@ -54,6 +54,15 @@ $(function () {
     });
   });
 
+  var dragging = false;
+
+  $(window).on('mouseover', function (event) {
+    if (!dragging) {
+      var hoverEvent = $.Event('hover', {});
+      $(event.target).trigger(hoverEvent);
+    }
+  });
+
   $(window).on('mousedown', function (startEvent) {
     if (touchInterface) return;
     var startTime = (new Date()).getTime();
@@ -91,6 +100,23 @@ $(function () {
         lastTapData = tapData;
       }
     });
+  });
+
+  //  TODO: enable/disable wheel == pinch... behaviour at consumer level
+  $(document).on('wheel', function (event) {
+    var scale;
+    if (event.originalEvent.deltaY > 0) {
+      scale = 1.1;
+    }
+    else {
+      scale = 1/1.1;
+    }
+    pinchEvent = $.Event('pinch', {
+      scale : scale,
+      x : event.originalEvent.pageX,
+      y : event.originalEvent.pageY
+    });
+    $(event.target).trigger(pinchEvent);
   });
 
   $(document).on('touchstart', function (startEvent) {
@@ -177,32 +203,35 @@ $(function () {
     });
 
     $(document).one('touchend', function (endEvent) {
+      var swiped;
       vx.sort();
       var medianVx = vx[2];
       if (medianVx > 0.5) {
+        swiped = 'right';
         var swiperightEvent = $.Event('swiperight', {
           vx : medianVx
         });
         $(endEvent.target).trigger(swiperightEvent);
       }
       else if (medianVx < -0.5) {
+        swiped = 'left';
         var swipeleftEvent = $.Event('swipeleft', {
           vx : medianVx
         });
         $(endEvent.target).trigger(swipeleftEvent);
       }
-      else {
-        var dropEvent = $.Event('drop', {
-          dx : lastX,
-          dy : lastY
-        });
-        $(endEvent.target).trigger(dropEvent);
-      }
+      var dropEvent = $.Event('drop', {
+        dx : lastX,
+        dy : lastY,
+        swiped : swiped
+      });
+      $(startEvent.target).trigger(dropEvent);
     });
   });
 
 
   $(window).on('mousedown', function (startEvent) {
+    var startTarget = startEvent.target;
     var startX = startEvent.originalEvent.screenX;
     var startY = startEvent.originalEvent.screenY;
     //  last 5 velocities recorded in x direction
@@ -215,6 +244,7 @@ $(function () {
     var lastY = startY;
 
     function drag(moveEvent) {
+      dragging = true;
       moveEvent.preventDefault();
 
       var x = moveEvent.originalEvent.screenX;
@@ -229,7 +259,7 @@ $(function () {
         dy : dy
       });
 
-      $(startEvent.target).trigger(dragEvent);
+      $(startTarget).trigger(dragEvent);
 
       vx.shift();
       vx.push(dx / (t - lastT));
@@ -242,31 +272,34 @@ $(function () {
     $(window).on('mousemove', drag);
 
     $(window).one('mouseup', function (endEvent) {
+      dragging = false;
       $(window).off('mousemove', drag);
     });
 
     $(window).one('mouseup', function (endEvent) {
       vx.sort();
       var medianVx = vx[2];
+      var swiped;
       if (medianVx > 0.5) {
+        swiped = 'right';
         var swiperightEvent = $.Event('swiperight', {
           vx : medianVx
         });
-        $(startEvent.target).trigger(swiperightEvent);
+        $(startTarget).trigger(swiperightEvent);
       }
       else if (medianVx < -0.5) {
+        swiped = 'left';
         var swipeleftEvent = $.Event('swipeleft', {
           vx : medianVx
         });
-        $(startEvent.target).trigger(swipeleftEvent);
+        $(startTarget).trigger(swipeleftEvent);
       }
-      else {
-        var dropEvent = $.Event('drop', {
-          dx : lastX,
-          dy : lastY
-        });
-        $(startEvent.target).trigger(dropEvent);
-      }
+      var dropEvent = $.Event('drop', {
+        dx : lastX,
+        dy : lastY,
+        swiped : swiped
+      });
+      $(startTarget).trigger(dropEvent);
     });
   });
 });
