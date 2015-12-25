@@ -148,6 +148,25 @@ Template.documentGraph.onDestroyed(function () {
   this.force.stop();
 });
 
+function cleanInAndOutLinks(template, link) {
+  var inLinks  = template.idToInLink[link.id];
+  var outLinks = template.idToOutLink[link.id];
+
+  for (var i=0; i<inLinks.length; i++) {
+    if (inLinks[i] == link) {
+      inlinks.splice(i, 1);
+      i -= 1;
+    }
+  }
+
+  for (var i=0; i<outLinks.length; i++) {
+    if (outLinks[i] == link) {
+      outLinks.splice(i, 1);
+      i -= 1;
+    }
+  }
+}
+
 
 Template.documentGraph.events({
   'resize' : function (event, template) {
@@ -189,7 +208,9 @@ Template.documentGraph.events({
 
     inLinks.forEach(function (inLink) {
       var linkData = {
+        id : event.linkData.id,
         sourceElement : outLink.element,
+        targetElement : inLink.element,
         source : outLink.document.nodeData,
         target : inLink.document.nodeData
       };
@@ -210,7 +231,9 @@ Template.documentGraph.events({
 
     outLinks.forEach(function (outLink) {
       var linkData = {
+        id : event.linkData.id,
         sourceElement : outLink.element,
+        targetElement : inLink.element,
         source : outLink.document.nodeData,
         target : inLink.document.nodeData
       };
@@ -241,20 +264,33 @@ Template.documentGraph.events({
       if (template.started) template.force.start();
     }
   },
-  'removelink' : function (event, template) {
-    var modified = false;
+  'removeoutlink' : function (event, template) {
+    var sourceElement = event.linkData.element;
     for (var i=0; i<template.links.length; i++) {
       var link = template.links[i];
-      if (link.source.template == event.linkData.document
-      ||  link.target.template == event.linkData.document) {
+      //  remove link if it is part of this our link
+      if (link.sourceElement == sourceElement) {
         template.links.splice(i, 1);
-        modified = true;
         i -= 1;
+        //  remove link from cache
+        cleanInAndOutLinks(template, link);
       }
     }
-    if (modified) {
-      template.force.start();
+    if (template.started) template.force.start();
+  },
+  'removeinlink' : function (event, template) {
+    var targetElement = event.linkData.element;
+    for (var i=0; i<template.links.length; i++) {
+      var link = template.links[i];
+      //  remove link if it is part of this our link
+      if (link.targetElement == targetElement) {
+        template.links.splice(i, 1);
+        i -= 1;
+        //  remove link from cache
+        cleanInAndOutLinks(template, link);
+      }
     }
+    if (template.started) template.force.start();
   }
 });
 
@@ -362,13 +398,11 @@ Template.documentGraphInLink.onRendered(function () {
 //  the in and/or out link is destroyed
 
 Template.documentGraphOutLink.onDestroyed(function () {
-  console.log('out link removed')
-  var removeOutLinkEvent = $.Event("removelink", { linkData : this.linkData });
+  var removeOutLinkEvent = $.Event("removeoutlink", { linkData : this.linkData });
   $(this.linkData.element).trigger(removeOutLinkEvent);
 });
 
 Template.documentGraphInLink.onDestroyed(function () {
-  console.log('in link removed')
-  var removeInLinkEvent = $.Event("removelink", { linkData : this.linkData });
+  var removeInLinkEvent = $.Event("removeinlink", { linkData : this.linkData });
   $(this.linkData.element).trigger(removeInLinkEvent);
 });
