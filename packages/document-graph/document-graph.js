@@ -94,22 +94,26 @@ Template.documentGraph.onRendered(function () {
         var overlapY = (node1.h + node2.h)/2 - Math.abs(node1.y - node2.y) + self.margin;
         overlap = Math.min(overlapX, overlapY);
 
-        if (node2.x < node1.x) {
-          if (!node2.fixed) node2.x -= overlap*alpha;
-          if (!node1.fixed) node1.x += overlap*alpha;
-        }
-        else {
-          if (!node2.fixed) node2.x += overlap*alpha;
-          if (!node1.fixed) node1.x -= overlap*alpha;
+        if (overlapY > self.margin) { //  prevent from sliding to corner
+          if (node2.x < node1.x) {
+            if (!node2.fixed) node2.x -= overlap*alpha;
+            if (!node1.fixed) node1.x += overlap*alpha;
+          }
+          else {
+            if (!node2.fixed) node2.x += overlap*alpha;
+            if (!node1.fixed) node1.x -= overlap*alpha;
+          }
         }
 
-        if (node2.y < node1.y) {
-          if (!node2.fixed) node2.y -= overlap*alpha;
-          if (!node1.fixed) node1.y += overlap*alpha;
-        }
-        else {
-          if (!node2.fixed) node2.y += overlap*alpha;
-          if (!node1.fixed) node1.y -= overlap*alpha;
+        if (overlapX > self.margin) { //  prevent from sliding to corner
+          if (node2.y < node1.y) {
+            if (!node2.fixed) node2.y -= overlap*alpha;
+            if (!node1.fixed) node1.y += overlap*alpha;
+          }
+          else {
+            if (!node2.fixed) node2.y += overlap*alpha;
+            if (!node1.fixed) node1.y -= overlap*alpha;
+          }
         }
       });
     });
