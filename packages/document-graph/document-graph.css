@@ -22,9 +22,16 @@
   position : absolute;
   left : 0;
   top : 0;
+  z-index: 1;
   pointer-events : none;
+  height : 100%;
+  width : 100%;
 }
 
+.document-graph-groups
+{
+  pointer-events: none;
+}
 
 .document-graph-in-link,
 .document-graph-out-link

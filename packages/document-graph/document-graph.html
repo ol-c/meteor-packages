@@ -1,14 +1,23 @@
 <template name="documentGraph">
-  <div class="document-graph" style="position:absolute"><!-- error in element resize code requires absolute here -->
+  <canvas class="document-graph-canvas"></canvas>
+  <div class="document-graph {{#if passthrough}}document-graph-groups{{/if}}" style="position:absolute"><!-- error in element resize code requires absolute here -->
     {{#each collection}}
       {{>documentGraphDocument template=../template data=this}}
     {{/each}}
-   </div>
-    <canvas class="document-graph-canvas"></canvas>
+    {{#if groups}}<!-- render groups as another document graph -->
+      {{>documentGraph collection=groups template=groupTemplate onCreated=groupSettings passthrough=true}}
+    {{/if}}
+  </div>
 </template>
 
 <template name="documentGraphDocument">
   <div class="document-graph-document">
+    {{>Template.dynamic template=template data=data}}
+  </div>
+</template>
+
+<template name="documentGraphGroup">
+  <div class="document-graph-template">
     {{>Template.dynamic template=template data=data}}
   </div>
 </template>

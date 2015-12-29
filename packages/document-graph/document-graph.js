@@ -46,6 +46,23 @@ Template.documentGraph.onCreated(function () {
   self.links = self.force.links();
 });
 
+Template.documentGraph.helpers({
+  groupSettings : function () {
+    return function (force) {
+      force
+        .gravity(-0.01)
+        .charge(-1000)
+        .friction(0.8)
+        .linkDistance(function (link) {
+          return 0;
+        })
+        .linkStrength(function (link) {
+          return 0.01;
+        });
+    }
+  }
+});
+
 Template.documentGraph.onRendered(function () {
   var self = this;
 
@@ -117,8 +134,8 @@ Template.documentGraph.onRendered(function () {
       node = nodes.pop();
     }
 
-    //  push overlapping nodes off of eachother
     self.nodes.forEach(function (node1) {
+      //  push overlapping nodes off of eachother
       node1.overlapping.forEach(function (node2) {
         var overlapX = (node1.w + node2.w)/2 - Math.abs(node1.x - node2.x) + self.margin;
         var overlapY = (node1.h + node2.h)/2 - Math.abs(node1.y - node2.y) + self.margin;
@@ -146,6 +163,8 @@ Template.documentGraph.onRendered(function () {
           }
         }
       });
+
+      //  TODO: pull nodes toward groups
     });
 
     self.force.nodes().forEach(function (nodeData) {
@@ -234,6 +253,7 @@ Template.documentGraph.events({
     template.force.size([width, height]);
   },
   'addnode' : function (event, template) {
+    event.stopPropagation();
 
     event.nodeData.x  = template.width/2 + (Math.random() - 0.5)*2;
     event.nodeData.y  = template.height/2 + (Math.random() - 0.5)*2;
@@ -245,6 +265,8 @@ Template.documentGraph.events({
     if (template.started) template.force.start();
   },
   'removenode' : function (event, template) {
+    event.stopPropagation();
+
     var nodes = template.force.nodes();
     for (var i=0; i<nodes.length; i++) {
       if (nodes[i].context = event.nodeData.context) {
@@ -254,6 +276,8 @@ Template.documentGraph.events({
     }
   },
   'addoutlink' : function (event, template) {
+    event.stopPropagation();
+
     var outLink = event.linkData;
 
     var inLinks = template.idToInLink[event.linkData.id] || [];
@@ -277,6 +301,8 @@ Template.documentGraph.events({
     outLinks.push(outLink);
   },
   'addinlink' : function (event, template) {
+    event.stopPropagation();
+
     var inLink = event.linkData;
 
     var inLinks = template.idToInLink[event.linkData.id] || [];
@@ -300,6 +326,8 @@ Template.documentGraph.events({
     inLinks.push(inLink);
   },
   'addlink' : function (event, template) {
+    event.stopPropagation();
+
     var linkData = event.linkData;
     var exists = false;
     for (var i=0; i<template.links.length; i++) {
@@ -321,6 +349,8 @@ Template.documentGraph.events({
     }
   },
   'removeoutlink' : function (event, template) {
+    event.stopPropagation();
+
     var sourceElement = event.linkData.element;
     for (var i=0; i<template.links.length; i++) {
       var link = template.links[i];
@@ -335,6 +365,8 @@ Template.documentGraph.events({
     if (template.started) template.force.start();
   },
   'removeinlink' : function (event, template) {
+    event.stopPropagation();
+
     var targetElement = event.linkData.element;
     for (var i=0; i<template.links.length; i++) {
       var link = template.links[i];
