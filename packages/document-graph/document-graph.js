@@ -1,7 +1,20 @@
+function backingScale(context) {
+  if ('devicePixelRatio' in window) {
+    if (window.devicePixelRatio > 1) {
+      return window.devicePixelRatio;
+    }
+  }
+  return 1;
+}
+
 Template.documentGraph.onCreated(function () {
   var self = this;
   
   self.force = d3.layout.force();
+
+  self.force.lineWidth = 1.5;
+  self.force.strokeStyle = 'grey';
+
 
   self.force
     .gravity(0)
@@ -43,12 +56,29 @@ Template.documentGraph.onRendered(function () {
   self.canvas.width = self.width;
   self.canvas.height = self.height;
   self.canvasContext = self.canvas.getContext('2d');
+
+  self.scaleFactor = backingScale(self.canvasContext);
+
+  if (self.scaleFactor > 1) {
+      self.canvas.width = self.canvas.width * self.scaleFactor;
+      self.canvas.height = self.canvas.height * self.scaleFactor;
+      // update the context for the new canvas scale
+      self.canvasContext = self.canvas.getContext("2d");
+  }
+
+  $(self.canvas).css({
+    width  : self.canvas.width/self.scaleFactor,
+    height : self.canvas.height/self.scaleFactor,
+  })
+
+
   self.force.size([self.width, self.height]);
 
   self.force.on("tick", function () {
     self.offset = $(self.firstNode).offset();
     var context = self.canvasContext;
-    context.clearRect(0, 0, self.canvas.width, self.canvas.height)
+
+    context.clearRect(0, 0, self.canvas.width, self.canvas.height);
 
     var alpha = self.force.alpha();
 
@@ -119,29 +149,51 @@ Template.documentGraph.onRendered(function () {
     });
 
     self.force.nodes().forEach(function (nodeData) {
+      var x = Math.round(nodeData.x - nodeData.w/2);
+      var y = Math.round(nodeData.y - nodeData.h/2)
       $(nodeData.element).css({
-        transform : 'translate(' + Math.round(nodeData.x - nodeData.w/2) + 'px, ' + Math.round(nodeData.y - nodeData.h/2) + 'px) scale(' + nodeData.scale + ')'
+        transform : 'translate(' + x + 'px, ' + y + 'px) '
+                  + 'scale(' + nodeData.scale + ')'
       });
     });
 
     //  draw links
-    context.beginPath();
+    //  TODO: process in z order
     self.links.forEach(function (link) {
       var source = $(link.sourceElement);
-      var target = $(link.target.element);
+      var target = $(link.targetElement);
       var sourceOffset = source.offset();
       var targetOffset = target.offset();
+
+      var sx = (sourceOffset.left - self.offset.left) * self.scaleFactor;
+      var sy = (sourceOffset.top  - self.offset.top) * self.scaleFactor;
+      var sw = source.width() * self.scaleFactor;
+      var sh = source.height() * self.scaleFactor;
+
+      var tx = (targetOffset.left - self.offset.left) * self.scaleFactor;
+      var ty = (targetOffset.top  - self.offset.top) * self.scaleFactor;
+      var tw = target.width() * self.scaleFactor;
+      var th = target.height() * self.scaleFactor;
+
+      context.beginPath();
       context.moveTo(
-        parseInt(sourceOffset.left - self.offset.left + link.source.w/2),
-        parseInt(sourceOffset.top  - self.offset.top  + link.source.h/2));
+        parseInt(sx + sw/2),
+        parseInt(sy  + sh/2));
+
       context.lineTo(
-        parseInt(targetOffset.left - self.offset.left + link.target.w/2),
-        parseInt(targetOffset.top  - self.offset.top  + link.target.h/2));
+        parseInt(tx + tw/2),
+        parseInt(ty + th/2));
+      context.closePath();
+
+      context.lineWidth = self.force.lineWidth;
+      context.strokeStyle = self.force.strokeStyle;
+      context.stroke();
+
+      context.clearRect(sx, sy, sw, sh);
+      context.clearRect(tx, ty, tw, th);
     });
 
-    context.lineWidth = 1;
-    context.strokeStyle = 'blue';
-    context.stroke();
+    
   });
 
   self.force.start();
