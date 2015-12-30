@@ -39,6 +39,8 @@ Template.documentGraph.onCreated(function () {
   self.idToInLink = {};
   self.idToOutLink = {};
 
+  self.groupTypeToInstance = {};
+
   self.margin = 20;
   self.edgeConstraintStrength = 1
 
@@ -275,6 +277,20 @@ Template.documentGraph.events({
       }
     }
   },
+  'addgroup' : function (event, template) {
+    var group = event.group;
+    if (event.passed_group_layer) {
+      //  capture addgroup after it has passed the group layer
+      event.stopPropagation();
+      template.groupTypeToInstance[group.type] = event.groupNodeData;
+    }
+    else {
+      event.passed_group_layer = true;
+    }
+  },
+  'addgroupmember' : function (event, template) {
+    console.log('added group member', event);
+  },
   'addoutlink' : function (event, template) {
     event.stopPropagation();
 
@@ -432,6 +448,13 @@ Template.documentGraphDocument.events({
   'addoutlink' : function (event, template) {
     event.linkData.document = template;
   },
+  'addgroup' : function (event, template) {
+    // add current node data as group data so parent can track group node position
+    event.groupNodeData = template.nodeData;
+  },
+  'addgroupmember' : function (event, template) {
+    //  add group type to current node
+  }, 
   'removeoutlink' : function (event, template) {
     event.linkData.document = template;
   },
@@ -450,7 +473,6 @@ Template.documentGraphDocument.events({
     template.nodeData.force.resume();
   },
   'doubletap' : function (event, template) {
-    console.log('doubletap!!!', event);
   },
   'drop' : function (event, template) {
     
@@ -476,6 +498,17 @@ Template.documentGraphInLink.onRendered(function () {
   };
   var addInLinkEvent = $.Event("addinlink", {linkData : this.linkData});
   $(this.firstNode).trigger(addInLinkEvent);
+});
+
+
+Template.documentGraphGroup.onRendered(function () {
+  var addGroupEvent = $.Event("addgroup", {group : this.data.data});
+  $(this.firstNode).trigger(addGroupEvent);
+});
+
+Template.documentGraphGroupMember.onRendered(function () {
+  var addGroupMemberEvent = $.Event("addgroupmember", {});
+  $(this.firstNode).trigger(addGroupMemberEvent);
 });
 
 
