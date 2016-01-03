@@ -8,8 +8,10 @@ function backingScale(context) {
 }
 
 function moveTowards(mover, target, alpha) {
-  mover.x += (target.x - mover.x) * alpha;
-  mover.y += (target.y - mover.y) * alpha;
+  var dx = target.x - mover.x;
+  var dy = target.y - mover.y;
+  mover.x += dx/2*alpha;
+  mover.y += dy/2*alpha;
 }
 
 Template.documentGraph.onCreated(function () {
@@ -55,18 +57,7 @@ Template.documentGraph.onCreated(function () {
 
 Template.documentGraph.helpers({
   groupSettings : function () {
-    return function (force) {
-      force
-        .gravity(-0.01)
-        .charge(-1000)
-        .friction(0.8)
-        .linkDistance(function (link) {
-          return 0;
-        })
-        .linkStrength(function (link) {
-          return 0.01;
-        });
-    }
+    return this.onGroupsCreated;
   }
 });
 
@@ -229,19 +220,22 @@ Template.documentGraph.onDestroyed(function () {
   this.force.stop();
 });
 
-function cleanInAndOutLinks(template, link) {
-  var inLinks  = template.idToInLink[link.id];
-  var outLinks = template.idToOutLink[link.id];
+function cleanInAndOutLinks(template, linkId, element) {
+  
+  var inLinks  = template.idToInLink[linkId];
+  var outLinks = template.idToOutLink[linkId];
 
   for (var i=0; i<inLinks.length; i++) {
-    if (inLinks[i] == link) {
-      inlinks.splice(i, 1);
+    if (inLinks[i].element == element
+    ||  inLinks[i].element == element) {
+      inLinks.splice(i, 1);
       i -= 1;
     }
   }
 
   for (var i=0; i<outLinks.length; i++) {
-    if (outLinks[i] == link) {
+    if (outLinks[i].element == element
+    ||  outLinks[i].element == element) {
       outLinks.splice(i, 1);
       i -= 1;
     }
@@ -376,19 +370,21 @@ Template.documentGraph.events({
     for (var i=0; i<template.links.length; i++) {
       var link = template.links[i];
       exists  = linkData.sourceElement == link.sourceElement
-             &&  linkData.source == link.source
-             &&  linkData.target == link.target;
+             &&  linkData.targetElement == link.targetElement;
       // if exact link already exists
       // we don't need to add a new one
       if (exists) break;
     }
 
     //  TODO: can check existance before this point
-    //  by (in addinlink/addoutlink handler) hashing
-    //  link properties and checking
+    //  by hashing link properties in
+    //  addinlink/addoutlink handler and checking here
     if (!exists) {
       template.links.push(linkData);
       if (template.started) template.force.start();
+    }
+    else {
+      console.log('exists...')
     }
   },
   'removeoutlink' : function (event, template) {
@@ -397,12 +393,12 @@ Template.documentGraph.events({
     var sourceElement = event.linkData.element;
     for (var i=0; i<template.links.length; i++) {
       var link = template.links[i];
-      //  remove link if it is part of this our link
+      //  remove link if it is part of this out link
       if (link.sourceElement == sourceElement) {
-        template.links.splice(i, 1);
-        i -= 1;
         //  remove link from cache
-        cleanInAndOutLinks(template, link);
+        template.links.splice(i, 1)[0]
+        cleanInAndOutLinks(template, link.id, sourceElement);
+        i -= 1;
       }
     }
     if (template.started) template.force.start();
@@ -413,12 +409,12 @@ Template.documentGraph.events({
     var targetElement = event.linkData.element;
     for (var i=0; i<template.links.length; i++) {
       var link = template.links[i];
-      //  remove link if it is part of this our link
+      //  remove link if it is part of this in link
       if (link.targetElement == targetElement) {
-        template.links.splice(i, 1);
-        i -= 1;
         //  remove link from cache
-        cleanInAndOutLinks(template, link);
+        template.links.splice(i, 1)[0]
+        cleanInAndOutLinks(template, link.id, targetElement);
+        i -= 1;
       }
     }
     if (template.started) template.force.start();
@@ -430,6 +426,7 @@ Template.documentGraphDocument.onCreated(function () {
   //  in case there is some explicit positioning information
   //  if there is, use it...
   this.nodeData.position = this.data.data.position;
+  this.nodeData.context = this.data.data;
   this.nodeData.groups = {};
 });
 
@@ -446,7 +443,6 @@ Template.documentGraphDocument.onRendered(function () {
   this.nodeData.w = w * scale;
   this.nodeData.h = h * scale;
   this.nodeData.overlapping = [];
-  this.nodeData.context = this.data.data;
   this.nodeData.element = this.firstNode;
   this.nodeData.template = this;
 
@@ -498,8 +494,11 @@ Template.documentGraphDocument.events({
   'removeinlink' : function (event, template) {
     event.linkData.document = template;
   },
-  'touch, hover' : function (event, template) {
+  'tap' : function (event, template) {
     template.nodeData.force.start();
+  },
+  'doubletap' : function (event, template) {
+    Meteor.setTimeout(template.nodeData.force.start);
   },
   'drag' : function (event, template) {
     template.nodeData.fixed = true;
@@ -546,16 +545,6 @@ Template.documentGraphGroupMember.onRendered(function () {
   $(this.element).trigger(addGroupMemberEvent);
 });
 
-Template.documentGraphGroup.onDestroyed(function () {
-  var removeGroupEvent = $.Event("removegroup", {group : this.data.data});
-  $(this.element).trigger(removeGroupEvent);
-});
-
-Template.documentGraphGroupMember.onDestroyed(function () {
-  var removeGroupMemberEvent = $.Event("removegroupmember", {groupId : this.data.id});
-  $(this.element).trigger(removeGroupMemberEvent);
-});
-
 
 //  on destroyed
 //////////////////
@@ -571,4 +560,15 @@ Template.documentGraphOutLink.onDestroyed(function () {
 Template.documentGraphInLink.onDestroyed(function () {
   var removeInLinkEvent = $.Event("removeinlink", { linkData : this.linkData });
   $(this.linkData.element).trigger(removeInLinkEvent);
+});
+
+
+Template.documentGraphGroup.onDestroyed(function () {
+  var removeGroupEvent = $.Event("removegroup", {group : this.data.data});
+  $(this.element).trigger(removeGroupEvent);
+});
+
+Template.documentGraphGroupMember.onDestroyed(function () {
+  var removeGroupMemberEvent = $.Event("removegroupmember", {groupId : this.data.id});
+  $(this.element).trigger(removeGroupMemberEvent);
 });

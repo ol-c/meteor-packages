@@ -47,7 +47,7 @@ $(function () {
         var tapDistance = distance(x1, y1, lastTapData.x, lastTapData.y);
         if (tapData.time - lastTapData.time < doubletapTimeThreshold && tapDistance < doubletapDistanceThreshold) {
           var doubletapEvent = $.Event('doubletap', tapData);
-          $(endEvent.target).trigger(doubletapEvent);
+          $(startEvent.target).trigger(doubletapEvent);
         }
         lastTapData = tapData;
       }
