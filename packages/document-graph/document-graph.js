@@ -55,12 +55,6 @@ Template.documentGraph.onCreated(function () {
   self.links = self.force.links();
 });
 
-Template.documentGraph.helpers({
-  groupSettings : function () {
-    return this.onGroupsCreated;
-  }
-});
-
 Template.documentGraph.onRendered(function () {
   var self = this;
 
@@ -101,8 +95,7 @@ Template.documentGraph.onRendered(function () {
     var node = nodes.pop();
 
     self.nodes.forEach(function (node1) {
-      //  push node into view
-      if (node1.fixed) return;
+      //  push node into view, even fixed nodes
       if (node1.position) {
 
         node1.x = self.width/2 + node1.position.x;
@@ -111,10 +104,19 @@ Template.documentGraph.onRendered(function () {
         return;
       }
 
-      if (node1.x - node1.w/2 < self.margin)               node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
-      if (node1.x + node1.w/2 > self.width - self.margin)  node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
-      if (node1.y - node1.h/2 < self.margin)               node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
-      if (node1.y + node1.h/2 > self.height - self.margin) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha * self.edgeConstraintStrength;
+      var offLeft = node1.x - node1.w/2 < self.margin;
+      var offRight = node1.x + node1.w/2 > self.width - self.margin;
+      var offTop = node1.y - node1.h/2 < self.margin;
+      var offBottom = node1.y + node1.h/2 > self.height - self.margin;
+
+      if (offLeft || offRight || offTop || offBottom) {
+        node1.fixed = false;
+      }
+
+      if (offLeft  ) node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
+      if (offRight ) node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
+      if (offTop   ) node1.y += (node1.h/2 - node1.y + self.margin) * alpha;
+      if (offBottom) node1.y -= (node1.y + node1.h/2 - self.height + self.margin) * alpha * self.edgeConstraintStrength;      
     });
 
     while (node) {
@@ -132,6 +134,8 @@ Template.documentGraph.onRendered(function () {
     self.nodes.forEach(function (node1) {
       //  push overlapping nodes off of eachother
       node1.overlapping.forEach(function (node2) {
+        //  groups and other nodes only move away from same kinds
+        if (node1.group != node2.group) return;
         var overlapX = (node1.w + node2.w)/2 - Math.abs(node1.x - node2.x) + self.margin;
         var overlapY = (node1.h + node2.h)/2 - Math.abs(node1.y - node2.y) + self.margin;
         overlap = Math.min(overlapX, overlapY);
@@ -142,7 +146,7 @@ Template.documentGraph.onRendered(function () {
             if (!node1.fixed) node1.x += overlap*alpha;
           }
           else {
-            if (!node2.fixed) node2.x += overlap*alpha;
+            if (!node2.fixed && !node2.group) node2.x += overlap*alpha;
             if (!node1.fixed) node1.x -= overlap*alpha;
           }
         }
@@ -163,7 +167,9 @@ Template.documentGraph.onRendered(function () {
       if (!node1.fixed) {
         for (var groupId in node1.groups) {
           var groupData = self.groupIdToNodeData[groupId];
-          moveTowards(node1, groupData, alpha);
+          if (groupData) {
+            moveTowards(node1, groupData, alpha);
+          }
         }
       }
     });
@@ -285,18 +291,15 @@ Template.documentGraph.events({
     }
   },
   'addgroup' : function (event, template) {
-    var group = event.group;
-    if (event.passed_group_layer) {
-      //  capture addgroup after it has passed the group layer
-      event.stopPropagation();
-      template.groupIdToNodeData[group.id] = event.groupNodeData;
-    }
-    else {
-      event.passed_group_layer = true;
-    }
+    event.stopPropagation();
+    var group = event.groupId;
+    event.groupNodeData.group = true;
+    template.groupIdToNodeData[group] = event.groupNodeData;
+    if (template.started) template.force.start();
   },
   'addgroupmember' : function (event, template) {
     //  document graph document added relevant data to node data already
+    if (template.started) template.force.start();
   },
   'removegroup' : function (event, template) {
     var group = event.group;
@@ -497,9 +500,6 @@ Template.documentGraphDocument.events({
   'tap' : function (event, template) {
     template.nodeData.force.start();
   },
-  'doubletap' : function (event, template) {
-    Meteor.setTimeout(template.nodeData.force.start);
-  },
   'drag' : function (event, template) {
     template.nodeData.fixed = true;
     template.nodeData.px += event.dx;
@@ -508,6 +508,7 @@ Template.documentGraphDocument.events({
   },
   'doubletap' : function (event, template) {
     if (template.nodeData.fixed) template.nodeData.fixed = false;
+    Meteor.setTimeout(template.nodeData.force.start);
   }
 });
 
@@ -532,17 +533,16 @@ Template.documentGraphInLink.onRendered(function () {
   $(this.firstNode).trigger(addInLinkEvent);
 });
 
-
-Template.documentGraphGroup.onRendered(function () {
-  this.element = this.firstNode;
-  var addGroupEvent = $.Event("addgroup", {group : this.data.data});
-  $(this.element).trigger(addGroupEvent);
-});
-
 Template.documentGraphGroupMember.onRendered(function () {
   this.element = this.firstNode;
   var addGroupMemberEvent = $.Event("addgroupmember", {groupId : this.data.id});
   $(this.element).trigger(addGroupMemberEvent);
+});
+
+Template.documentGraphGroup.onRendered(function () {
+  this.element = this.firstNode;
+  var addGroupEvent = $.Event("addgroup", {groupId : this.data.id});
+  $(this.element).trigger(addGroupEvent);
 });
 
 
@@ -560,12 +560,6 @@ Template.documentGraphOutLink.onDestroyed(function () {
 Template.documentGraphInLink.onDestroyed(function () {
   var removeInLinkEvent = $.Event("removeinlink", { linkData : this.linkData });
   $(this.linkData.element).trigger(removeInLinkEvent);
-});
-
-
-Template.documentGraphGroup.onDestroyed(function () {
-  var removeGroupEvent = $.Event("removegroup", {group : this.data.data});
-  $(this.element).trigger(removeGroupEvent);
 });
 
 Template.documentGraphGroupMember.onDestroyed(function () {

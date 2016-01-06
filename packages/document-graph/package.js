@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:document-graph',
-  version: '0.4.0',
+  version: '0.5.0',
   // Brief, one-line summary of the package.
   summary: 'simply view a force directed graph of colletion data with custom templates',
   // URL to the Git repository containing the source code for this package.

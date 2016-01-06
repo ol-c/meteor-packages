@@ -1,0 +1,29 @@
+.pillbox-pill-input
+{
+  font-family : inherit;
+  font-size : inherit;
+  border : none;
+  background: none;
+  outline : none;
+}
+
+input.pillbox-pill-input
+{
+  width : 1em;
+}
+
+span.pillbox-pill.pillbox-pill-input
+{
+  white-space : nowrap;
+}
+
+pre.pillbox-pill-input
+{
+  display : inline;
+  position : absolute;
+  font-size : inherit;
+  font-family : inherit;
+  opacity : 0;
+  padding-right : 1em;
+  pointer-events : none;
+}

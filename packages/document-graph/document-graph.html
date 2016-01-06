@@ -1,12 +1,9 @@
 <template name="documentGraph">
   <canvas class="document-graph-canvas"></canvas>
-  <div class="document-graph {{#if isGroups}}document-graph-groups{{/if}}" style="position:absolute"><!-- error in element resize code requires absolute here -->
+  <div class="document-graph" style="position:absolute"><!-- error in element resize code requires absolute here -->
     {{#each collection}}
-      {{>documentGraphDocument template=../template isGroup=../isGroups data=this}}
+      {{>documentGraphDocument template=../template data=this}}
     {{/each}}
-    {{#if groups}}<!-- render groups as another document graph document -->
-      {{>documentGraph collection=groups template=groupTemplate onCreated=groupSettings isGroups=true}}
-    {{/if}}
   </div>
 </template>
 
@@ -21,9 +18,7 @@
 </template>
 
 <template name="documentGraphGroup">
-  <div class="document-graph-group">
-    {{>Template.dynamic template=template data=data}}
-  </div>
+  <div class="document-graph-group"></div>
 </template>
 
 <template name="documentGraphGroupMember">

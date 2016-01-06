@@ -1,0 +1,6 @@
+<template name="pillbox">
+  <span class="pillbox">
+    {{#each items}}<span class="pillbox-pill">{{>Template.dynamic template=../template data=this}}</span>{{/each}}
+    <span class="pillbox-pill pillbox-pill-input">+ <input class="pillbox-pill-input"><pre class="pillbox-pill-input"></pre></span>
+  </span>
+</template>
