@@ -295,8 +295,10 @@ $(function () {
         $(startTarget).trigger(swipeleftEvent);
       }
       var dropEvent = $.Event('drop', {
-        dx : lastX,
-        dy : lastY,
+        x : lastX,
+        y : lastY,
+        dx : lastX - startX,
+        dy : lastY - startY,
         swiped : swiped
       });
       $(startTarget).trigger(dropEvent);

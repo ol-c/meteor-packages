@@ -8,12 +8,15 @@
 </template>
 
 <template name="documentGraphDocument">
-  <div class="document-graph-document">
-    {{#if isGroup}}
-      {{>documentGraphGroup template=template data=data}}
+  <div class="document-graph-document
+    {{#if data.$focused}}document-graph-focused-document{{/if}}
+    {{#if isGroup}}document-graph-group-document{{/if}}
+    {{#if data.$active}}
+      document-graph-interactable-document
     {{else}}
-      {{>Template.dynamic template=template data=data}}
-    {{/if}}
+      document-graph-noninteractable-document
+    {{/if}}">
+    {{>Template.dynamic template=template data=data}}
   </div>
 </template>
 

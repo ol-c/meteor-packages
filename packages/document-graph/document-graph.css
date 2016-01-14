@@ -27,10 +27,31 @@
   width : 100%;
 }
 
-.document-graph-groups
+.document-graph-document
 {
+  z-index: 2;
+}
+
+.document-graph-document.document-graph-group-document
+{
+  z-index: 1;
+}
+
+.document-graph-document.document-graph-interactable-document
+{
+
+}
+
+.document-graph-document.document-graph-noninteractable-document {
   pointer-events: none;
 }
+
+.document-graph-document.document-graph-focused-document
+{
+  z-index : 3;
+}
+
+.document-graph-group
 
 .document-graph-in-link,
 .document-graph-out-link

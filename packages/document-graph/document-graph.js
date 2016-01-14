@@ -7,11 +7,26 @@ function backingScale(context) {
   return 1;
 }
 
+function overlap(node1, node2) {
+  var overlappingX = Math.abs(node1.x - node2.x) < (node1.w + node2.w)/2;
+  var overlappingY = Math.abs(node1.y - node2.y) < (node1.h + node2.h)/2;
+  return overlappingX && overlappingY;
+}
+
+var activeDocument = new ReactiveVar();
+
 function moveTowards(mover, target, alpha) {
+
   var dx = target.x - mover.x;
   var dy = target.y - mover.y;
   mover.x += dx/2*alpha;
   mover.y += dy/2*alpha;
+
+  //  if overlaps, undo the change
+  if (overlap(mover, target)) {
+    mover.x -= dx/2*alpha;
+    mover.y -= dy/2*alpha;
+  }
 }
 
 Template.documentGraph.onCreated(function () {
@@ -28,9 +43,10 @@ Template.documentGraph.onCreated(function () {
     .charge(0)
     .friction(0.8)
     .linkDistance(function (link) {
-      var from = link.source;
-      var to = link.target;
-      return self.margin + Math.sqrt( Math.pow(from.w + to.w, 2) + Math.pow(from.h + to.h, 2) );
+      return 0;
+    })
+    .linkStrength(function (link) {
+      return 0;
     });
 
   if (self.data.onCreated) {
@@ -96,18 +112,24 @@ Template.documentGraph.onRendered(function () {
 
     self.nodes.forEach(function (node1) {
       //  push node into view, even fixed nodes
-      if (node1.position) {
+      if (node1.position && !node1.positionApplied) {
 
         node1.x = self.width/2 + node1.position.x;
         node1.y = self.height/2 + node1.position.y;
-
+        node1.px = node1.x;
+        node1.py = node1.y;
+        //  only use it the first time
+        node1.positionApplied = true;
+        return;
+      }
+      if (node1.dragging) {
         return;
       }
 
-      var offLeft = node1.x - node1.w/2 < self.margin;
-      var offRight = node1.x + node1.w/2 > self.width - self.margin;
-      var offTop = node1.y - node1.h/2 < self.margin;
-      var offBottom = node1.y + node1.h/2 > self.height - self.margin;
+      var offLeft   = node1.x < self.margin;
+      var offRight  = node1.x > self.width - self.margin;
+      var offTop    = node1.y < self.margin;
+      var offBottom = node1.y > self.height - self.margin;
 
       if (offLeft || offRight || offTop || offBottom) {
         node1.fixed = false;
@@ -135,30 +157,35 @@ Template.documentGraph.onRendered(function () {
       //  push overlapping nodes off of eachother
       node1.overlapping.forEach(function (node2) {
         //  groups and other nodes only move away from same kinds
-        if (node1.group != node2.group) return;
+        //  if (node1.group != node2.group) return;
         var overlapX = (node1.w + node2.w)/2 - Math.abs(node1.x - node2.x) + self.margin;
         var overlapY = (node1.h + node2.h)/2 - Math.abs(node1.y - node2.y) + self.margin;
-        overlap = Math.min(overlapX, overlapY);
+        var overlap = Math.min(overlapX, overlapY);
+
+        var bothGroups = node1.group && node2.group;
+        var moveNode1 = (!node1.fixed && !(node1.group && !node2.group)) || bothGroups;
+        var moveNode2 = (!node2.fixed && !(node2.group && !node1.group)) || bothGroups;
+
 
         if (overlapY > self.margin) { //  prevent from sliding to corner
           if (node2.x < node1.x) {
-            if (!node2.fixed) node2.x -= overlap*alpha;
-            if (!node1.fixed) node1.x += overlap*alpha;
+            if (moveNode2) node2.x -= overlap*alpha;
+            if (moveNode1) node1.x += overlap*alpha;
           }
           else {
-            if (!node2.fixed && !node2.group) node2.x += overlap*alpha;
-            if (!node1.fixed) node1.x -= overlap*alpha;
+            if (moveNode2) node2.x += overlap*alpha;
+            if (moveNode1) node1.x -= overlap*alpha;
           }
         }
 
         if (overlapX > self.margin) { //  prevent from sliding to corner
           if (node2.y < node1.y) {
-            if (!node2.fixed) node2.y -= overlap*alpha;
-            if (!node1.fixed) node1.y += overlap*alpha;
+            if (moveNode2) node2.y -= overlap*alpha;
+            if (moveNode1) node1.y += overlap*alpha;
           }
           else {
-            if (!node2.fixed) node2.y += overlap*alpha;
-            if (!node1.fixed) node1.y -= overlap*alpha;
+            if (moveNode2) node2.y += overlap*alpha;
+            if (moveNode1) node1.y -= overlap*alpha;
           }
         }
       });
@@ -266,14 +293,14 @@ Template.documentGraph.events({
 
     if (event.nodeData.position) {
       //  counted from center
-      x += event.nodeData.position.x;
-      y += event.nodeData.position.y;
+      x = template.width/2 + event.nodeData.position.x;
+      y = template.height/2 + event.nodeData.position.y;
     }
 
     event.nodeData.x  = x;
     event.nodeData.y  = y;
-    event.nodeData.px = template.width/2 + (Math.random() - 0.5)*2;
-    event.nodeData.py = template.height/2 + (Math.random() - 0.5)*2;
+    event.nodeData.px = template.width/2;
+    event.nodeData.py = template.height/2;
     event.nodeData.force = template.force;
 
     template.nodes.push(event.nodeData);
@@ -289,6 +316,7 @@ Template.documentGraph.events({
         break;
       }
     }
+    if (template.started) template.force.start();
   },
   'addgroup' : function (event, template) {
     event.stopPropagation();
@@ -311,8 +339,10 @@ Template.documentGraph.events({
     else {
       event.passed_group_layer = true;
     }
+    if (template.started) template.force.start();
   },
   'removegroupmember' : function (event, template) {
+    if (template.started) template.force.start();
     //  document graph document added relevant data to node data already
   },
   'addoutlink' : function (event, template) {
@@ -421,16 +451,69 @@ Template.documentGraph.events({
       }
     }
     if (template.started) template.force.start();
+  },
+  'drop' : function (event, template) {
+    if (event.droppedDocument) {
+      //  search nodes for node under the given one
+      template.force.nodes().forEach(function (node) {
+        if (node.template !== template && pointInRect(event, node)) {
+          var target = node.template.$('.document-graph-document').children().first();
+          var receiveEvent = $.Event("receive", { document : event.droppedDocument.data.data });
+          target.trigger(receiveEvent);
+        }
+      });
+    }
+  }
+});
+
+function pointInRect(point, rect) {
+  return rect.x - rect.w/2 < point.x && rect.x + rect.w/2 > point.x
+      && rect.y - rect.w/2 < point.y && rect.y + rect.h/2 > point.y;
+}
+
+
+//  alt used to toggle node type focus
+var altsPressed = new ReactiveVar(0);
+$(document).on('keydown', function (event) {
+  if (event.keyCode == 18) {
+    altsPressed.set(altsPressed.get() + 1);
+  }
+});
+
+Template.body.events({
+  touch : function (event, template) {
+    var active = activeDocument.get();
+    if (!event.passedDocument && active) {
+      active.nodeData.fixed = false;
+      active.nodeData.force.start();
+      activeDocument.set(undefined);
+
+    }
   }
 });
 
 Template.documentGraphDocument.onCreated(function () {
+  var self = this;
   this.nodeData = {};
   //  in case there is some explicit positioning information
   //  if there is, use it...
   this.nodeData.position = this.data.data.position;
   this.nodeData.context = this.data.data;
   this.nodeData.groups = {};
+  this.isGroup = new ReactiveVar(false);
+
+  //  keep this special data in context
+  this.autorun(function () {
+    currentData = Template.currentData().data;
+    currentData.$active = function () {
+      //  always be active
+      return true;/*(self.isGroup.get()  && altsPressed.get()%2==1)
+          || (!self.isGroup.get() && altsPressed.get()%2==0);*/
+    };
+    currentData.$focused = function () {
+      return activeDocument.get() == self;
+    };
+  });
 });
 
 Template.documentGraphDocument.onRendered(function () {
@@ -468,6 +551,12 @@ Template.documentGraphDocument.onRendered(function () {
   $(this.firstNode).trigger(addNodeEvent);
 });
 
+Template.documentGraphDocument.helpers({
+  isGroup : function () {
+    return Template.instance().isGroup.get();
+  }
+})
+
 Template.documentGraphDocument.onDestroyed(function () {
   var removeNodeEvent = $.Event("removenode", { nodeData : this.nodeData });
   $(this.firstNode).trigger(removeNodeEvent);
@@ -475,12 +564,23 @@ Template.documentGraphDocument.onDestroyed(function () {
 
 //  add the link's template
 Template.documentGraphDocument.events({
+  'hover, touch, focus' : function (event, template) {
+    // set as active documnet
+    if (activeDocument.get()) activeDocument.get().nodeData.fixed = false;
+    template.nodeData.fixed = true;
+    activeDocument.set(template);
+    event.passedDocument = true;
+  },
   'addoutlink' : function (event, template) {
     event.linkData.document = template;
+  },
+  'elementresize' : function (event, template) {
+    template.nodeData.force.start();
   },
   'addgroup, removegroup' : function (event, template) {
     // add current node data as group data so parent can track group node position
     event.groupNodeData = template.nodeData;
+    template.isGroup.set(true);
   },
   'addgroupmember' : function (event, template) {
     template.nodeData.groups[event.groupId] = true;
@@ -497,18 +597,43 @@ Template.documentGraphDocument.events({
   'removeinlink' : function (event, template) {
     event.linkData.document = template;
   },
-  'tap' : function (event, template) {
+  'touch' : function (event, template) {
+    event.passedDoucument = true;
     template.nodeData.force.start();
   },
   'drag' : function (event, template) {
     template.nodeData.fixed = true;
+    template.nodeData.dragging = true;
     template.nodeData.px += event.dx;
     template.nodeData.py += event.dy;
     template.nodeData.force.resume();
   },
+  'drop' : function (event, template) {
+    if (activeDocument.get() != template) {
+      template.nodeData.fixed = false;
+    }
+    template.nodeData.dragging = false;
+    event.droppedDocument = template;
+    template.nodeData.force.resume();
+  },
   'doubletap' : function (event, template) {
-    if (template.nodeData.fixed) template.nodeData.fixed = false;
     Meteor.setTimeout(template.nodeData.force.start);
+  },
+  'fixnode' : function (event, template) {
+    //  let all other events proagate past, then fix the node
+    template.nodeData.force.stop();
+    Meteor.setTimeout(function () {
+      template.nodeData.fixed = true;
+      template.nodeData.force.start();
+    });
+  },
+  'unfixnode' : function (event, template) {
+    //  let all other events proagate past, then unfix the node
+    template.nodeData.force.stop();
+    Meteor.setTimeout(function () {
+      template.nodeData.fixed = false;
+      template.nodeData.force.start();
+    }, 100);
   }
 });
 
