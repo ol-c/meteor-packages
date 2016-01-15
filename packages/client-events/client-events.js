@@ -232,8 +232,8 @@ $(function () {
 
   $(window).on('mousedown', function (startEvent) {
     var startTarget = startEvent.target;
-    var startX = startEvent.originalEvent.screenX;
-    var startY = startEvent.originalEvent.screenY;
+    var startX = startEvent.originalEvent.pageX;
+    var startY = startEvent.originalEvent.pageY;
     //  last 5 velocities recorded in x direction
     var vx = [0,0,0,0,0];
     var lastT = new Date();
@@ -247,8 +247,8 @@ $(function () {
       dragging = true;
       moveEvent.preventDefault();
 
-      var x = moveEvent.originalEvent.screenX;
-      var y = moveEvent.originalEvent.screenY;
+      var x = moveEvent.originalEvent.pageX;
+      var y = moveEvent.originalEvent.pageY;
       var scale = 1;
       var t = new Date();
 

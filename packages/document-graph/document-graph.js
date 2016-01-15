@@ -131,9 +131,10 @@ Template.documentGraph.onRendered(function () {
       var offTop    = node1.y < self.margin;
       var offBottom = node1.y > self.height - self.margin;
 
-      if (offLeft || offRight || offTop || offBottom) {
-        node1.fixed = false;
-      }
+      if (offLeft) x = self.margin;
+      if (offTop) y = self.margin;
+      if (offRight) x = self.width - node1.w - self.margin;
+      if (offBottom) y = self.height - node1.h - self.margin;
 
       if (offLeft  ) node1.x += (node1.w/2 - node1.x + self.margin) * alpha * self.edgeConstraintStrength;
       if (offRight ) node1.x -= (node1.x + node1.w/2 - self.width + self.margin) * alpha * self.edgeConstraintStrength;
@@ -254,21 +255,18 @@ Template.documentGraph.onDestroyed(function () {
 });
 
 function cleanInAndOutLinks(template, linkId, element) {
-  
   var inLinks  = template.idToInLink[linkId];
   var outLinks = template.idToOutLink[linkId];
 
   for (var i=0; i<inLinks.length; i++) {
-    if (inLinks[i].element == element
-    ||  inLinks[i].element == element) {
+    if (inLinks[i].element == element) {
       inLinks.splice(i, 1);
       i -= 1;
     }
   }
 
   for (var i=0; i<outLinks.length; i++) {
-    if (outLinks[i].element == element
-    ||  outLinks[i].element == element) {
+    if (outLinks[i].element == element) {
       outLinks.splice(i, 1);
       i -= 1;
     }
@@ -329,18 +327,6 @@ Template.documentGraph.events({
     //  document graph document added relevant data to node data already
     if (template.started) template.force.start();
   },
-  'removegroup' : function (event, template) {
-    var group = event.group;
-    if (event.passed_group_layer) {
-      //  capture addgroup after it has passed the group layer
-      event.stopPropagation();
-      delete template.groupIdToNodeData[group.id];
-    }
-    else {
-      event.passed_group_layer = true;
-    }
-    if (template.started) template.force.start();
-  },
   'removegroupmember' : function (event, template) {
     if (template.started) template.force.start();
     //  document graph document added relevant data to node data already
@@ -364,8 +350,13 @@ Template.documentGraph.events({
         source : outLink.document.nodeData,
         target : inLink.document.nodeData
       };
-      var addLinkEvent = $.Event("addlink", { linkData : linkData });
-      $(template.firstNode).trigger(addLinkEvent);
+      if ($.contains(document, inLink.element)) {
+        var addLinkEvent = $.Event("addlink", { linkData : linkData });
+        $(template.firstNode).trigger(addLinkEvent);
+      }
+      else {
+        //  unremoved straggler... TODO: clean better on remove...
+      }
     });
 
     outLinks.push(outLink);
@@ -389,8 +380,13 @@ Template.documentGraph.events({
         source : outLink.document.nodeData,
         target : inLink.document.nodeData
       };
-      var addLinkEvent = $.Event("addlink", { linkData : linkData });
-      $(template.firstNode).trigger(addLinkEvent);
+      if ($.contains(document, outLink.element)) {
+        var addLinkEvent = $.Event("addlink", { linkData : linkData });
+        $(template.firstNode).trigger(addLinkEvent);
+      }
+      else {
+        //  unremoved straggler... TODO: clean better on remove...
+      }
     });
 
     inLinks.push(inLink);
@@ -420,6 +416,12 @@ Template.documentGraph.events({
       console.log('exists...')
     }
   },
+  'removegroup' : function (event, template) {
+    var group = event.group;
+    event.stopPropagation();
+    delete template.groupIdToNodeData[group.id];
+    if (template.started) template.force.start();
+  },
   'removeoutlink' : function (event, template) {
     event.stopPropagation();
 
@@ -429,7 +431,7 @@ Template.documentGraph.events({
       //  remove link if it is part of this out link
       if (link.sourceElement == sourceElement) {
         //  remove link from cache
-        template.links.splice(i, 1)[0]
+        template.links.splice(i, 1);
         cleanInAndOutLinks(template, link.id, sourceElement);
         i -= 1;
       }
@@ -445,7 +447,7 @@ Template.documentGraph.events({
       //  remove link if it is part of this in link
       if (link.targetElement == targetElement) {
         //  remove link from cache
-        template.links.splice(i, 1)[0]
+        template.links.splice(i, 1);
         cleanInAndOutLinks(template, link.id, targetElement);
         i -= 1;
       }
@@ -456,7 +458,7 @@ Template.documentGraph.events({
     if (event.droppedDocument) {
       //  search nodes for node under the given one
       template.force.nodes().forEach(function (node) {
-        if (node.template !== template && pointInRect(event, node)) {
+        if (node.template !== event.droppedDocument && pointInRect(event, node)) {
           var target = node.template.$('.document-graph-document').children().first();
           var receiveEvent = $.Event("receive", { document : event.droppedDocument.data.data });
           target.trigger(receiveEvent);
@@ -468,7 +470,7 @@ Template.documentGraph.events({
 
 function pointInRect(point, rect) {
   return rect.x - rect.w/2 < point.x && rect.x + rect.w/2 > point.x
-      && rect.y - rect.w/2 < point.y && rect.y + rect.h/2 > point.y;
+      && rect.y - rect.h/2 < point.y && rect.y + rect.h/2 > point.y;
 }
 
 
@@ -484,10 +486,11 @@ Template.body.events({
   touch : function (event, template) {
     var active = activeDocument.get();
     if (!event.passedDocument && active) {
-      active.nodeData.fixed = false;
+      if (!active.nodeData.forceFixed) {
+        active.nodeData.fixed = false;
+      }
       active.nodeData.force.start();
       activeDocument.set(undefined);
-
     }
   }
 });
@@ -566,7 +569,9 @@ Template.documentGraphDocument.onDestroyed(function () {
 Template.documentGraphDocument.events({
   'hover, touch, focus' : function (event, template) {
     // set as active documnet
-    if (activeDocument.get()) activeDocument.get().nodeData.fixed = false;
+    if (activeDocument.get() && !activeDocument.get().nodeData.forceFixed) {
+      activeDocument.get().nodeData.fixed = false;
+    }
     template.nodeData.fixed = true;
     activeDocument.set(template);
     event.passedDocument = true;
@@ -585,17 +590,17 @@ Template.documentGraphDocument.events({
   'addgroupmember' : function (event, template) {
     template.nodeData.groups[event.groupId] = true;
   },
-  'removegroupmember' : function (event, template) {
-    delete template.nodeData.groups[event.groupId];
-  },
-  'removeoutlink' : function (event, template) {
-    event.linkData.document = template;
-  },
   'addinlink' : function (event, template) {
     event.linkData.document = template;
   },
   'removeinlink' : function (event, template) {
     event.linkData.document = template;
+  },
+  'removeoutlink' : function (event, template) {
+    event.linkData.document = template;
+  },
+  'removegroupmember' : function (event, template) {
+    delete template.nodeData.groups[event.groupId];
   },
   'touch' : function (event, template) {
     event.passedDoucument = true;
@@ -609,7 +614,7 @@ Template.documentGraphDocument.events({
     template.nodeData.force.resume();
   },
   'drop' : function (event, template) {
-    if (activeDocument.get() != template) {
+    if (activeDocument.get() != template && !active.nodeData.forceFixed) {
       template.nodeData.fixed = false;
     }
     template.nodeData.dragging = false;
@@ -624,6 +629,7 @@ Template.documentGraphDocument.events({
     template.nodeData.force.stop();
     Meteor.setTimeout(function () {
       template.nodeData.fixed = true;
+      template.nodeData.forceFixed = event.forceFixed;
       template.nodeData.force.start();
     });
   },
@@ -631,6 +637,7 @@ Template.documentGraphDocument.events({
     //  let all other events proagate past, then unfix the node
     template.nodeData.force.stop();
     Meteor.setTimeout(function () {
+      template.nodeData.forceFixed = false;
       template.nodeData.fixed = false;
       template.nodeData.force.start();
     }, 100);
