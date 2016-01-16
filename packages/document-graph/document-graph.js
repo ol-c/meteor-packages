@@ -7,10 +7,43 @@ function backingScale(context) {
   return 1;
 }
 
+function drawPath(context, path) {
+  var scale = backingScale(context);
+  if (path.length > 2) {
+    context.moveTo(
+      parseInt(path[0][0] * scale),
+      parseInt(path[0][1] * scale)
+    );
+
+    for (var i=1; i<path.length; i++) {
+      context.lineTo(
+        parseInt(path[i][0] * scale),
+        parseInt(path[i][1] * scale)
+      );
+    }
+
+    context.lineTo(
+      parseInt(path[0][0] * scale),
+      parseInt(path[0][1] * scale)
+    );
+  }
+}
+
 function overlap(node1, node2) {
   var overlappingX = Math.abs(node1.x - node2.x) < (node1.w + node2.w)/2;
   var overlappingY = Math.abs(node1.y - node2.y) < (node1.h + node2.h)/2;
   return overlappingX && overlappingY;
+}
+
+function cornersOf(node) {
+  var x1 = node.x - node.w/2;
+  var x2 = node.x + node.w/2;
+  var y1 = node.y - node.h/2;
+  var y2 = node.y + node.h/2;
+  return [[x1, y1],
+          [x1, y2],
+          [x2, y1],
+          [x2, y2]];
 }
 
 var activeDocument = new ReactiveVar();
@@ -164,8 +197,9 @@ Template.documentGraph.onRendered(function () {
         var overlap = Math.min(overlapX, overlapY);
 
         var bothGroups = node1.group && node2.group;
-        var moveNode1 = (!node1.fixed && !(node1.group && !node2.group)) || bothGroups;
-        var moveNode2 = (!node2.fixed && !(node2.group && !node1.group)) || bothGroups;
+        var bothUnfixed = !node1.fixed && !node2.fixed;
+        var moveNode1 = (!node1.fixed && !node1.group) || bothUnfixed;
+        var moveNode2 = (!node2.fixed && !node2.group) || bothUnfixed;
 
 
         if (overlapY > self.margin) { //  prevent from sliding to corner
@@ -201,6 +235,37 @@ Template.documentGraph.onRendered(function () {
         }
       }
     });
+
+    //  convex hull for groups
+    var groups = {};
+    for (var groupId in self.groupIdToNodeData) {
+      groups[groupId] = [self.groupIdToNodeData[groupId]];
+    }
+    self.force.nodes().forEach(function (node) {
+      for (var groupId in node.groups) {
+        if (groups[groupId]) {
+          groups[groupId].push(node);
+        }
+      }
+    });
+    for (var groupId in groups) {
+      //  collect all relevant vertices for group hull
+      //  (corners of nodes in group)
+      if (groups[groupId].length == 1) continue;
+      var groupVertices = [];
+      groups[groupId].forEach(function (node) {
+        cornersOf(node).forEach(function (corner) {
+          groupVertices.push(corner);
+        });
+      });
+      var groupHull = d3.geom.hull(groupVertices);
+      context.beginPath();
+      drawPath(context, groupHull);
+      context.fillStyle = "rgba(135,206,235,0.1)";
+      context.strokeStyle = "rgba(135,206,235,0.1)";
+      context.fill();
+      context.closePath()
+    }
 
     self.force.nodes().forEach(function (nodeData) {
       var x = Math.round(nodeData.x - nodeData.w/2);
@@ -582,10 +647,12 @@ Template.documentGraphDocument.events({
   'elementresize' : function (event, template) {
     template.nodeData.force.start();
   },
+  'addgroup' : function (event, template) {
+    template.isGroup.set(true);
+  },
   'addgroup, removegroup' : function (event, template) {
     // add current node data as group data so parent can track group node position
     event.groupNodeData = template.nodeData;
-    template.isGroup.set(true);
   },
   'addgroupmember' : function (event, template) {
     template.nodeData.groups[event.groupId] = true;
