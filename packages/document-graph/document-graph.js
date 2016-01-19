@@ -67,16 +67,27 @@ function overlap(node1, node2) {
   return overlappingX && overlappingY;
 }
 
-function cornersOf(node, padding) {
+function nodeHull(node, padding) {
   padding = padding || 0;
-  var x1 = node.x - node.w/2 - padding;
-  var x2 = node.x + node.w/2 + padding;
-  var y1 = node.y - node.h/2 - padding;
-  var y2 = node.y + node.h/2 + padding;
-  return [[x1, y1],
-          [x1, y2],
-          [x2, y1],
-          [x2, y2]];
+  if (node.group) {
+    var x1 = node.x - node.w/2 - padding;
+    var x2 = node.x + node.w/2 + padding;
+    var y1 = node.y - node.h/2 - padding;
+    var y2 = node.y + node.h/2 + padding;
+    return [[x1, y1],
+            [x1, y2],
+            [x2, y1],
+            [x2, y2]];
+  }
+  else {
+    padding *= 2;
+    var x = node.x - node.w/2;
+    var y = node.y - node.h/2;
+    return [[x + padding, y + padding],
+            [x - padding, y + padding],
+            [x + padding, y - padding],
+            [x - padding, y - padding]];
+  }
 }
 
 var activeDocument = new ReactiveVar();
@@ -299,14 +310,13 @@ Template.documentGraph.onRendered(function () {
     for (var groupId in groups) {
       //  collect all relevant vertices for group hull
       //  (corners of nodes in group)
-      if (groups[groupId].length == 1) continue;
       var groupVertices = [];
       var wideGroupVertices = [];
       groups[groupId].forEach(function (node) {
-        cornersOf(node, self.hullPadding).forEach(function (corner) {
+        nodeHull(node, self.hullPadding).forEach(function (corner) {
           groupVertices.push(corner);
         });
-        cornersOf(node, self.wideHullPadding).forEach(function (corner) {
+        nodeHull(node, self.wideHullPadding).forEach(function (corner) {
           wideGroupVertices.push(corner);
         });
       });
@@ -587,12 +597,12 @@ Template.documentGraph.events({
     }
   },
   'removegroup' : function (event, template) {
-    var group = event.group;
+    var groupId = event.groupId;
     event.stopPropagation();
-    delete template.groupIdToNodeData[group.id];
+    delete template.groupIdToNodeData[groupId];
     if (template.started) template.force.start();
     template.groupHulls.remove({
-      groupId : group
+      groupId : groupId
     });
   },
   'removeoutlink' : function (event, template) {
@@ -640,9 +650,11 @@ Template.documentGraph.events({
           var receiveEventData = {};
           if (event.droppedDocument) {
             receiveEventData.document = event.droppedDocument.data.data;
+            receiveEventData.template = event.droppedDocument;
           }
           else if (event.linkedDocument) {
             receiveEventData.linkedDocument = event.linkedDocument.data.data;
+            receiveEventData.template = event.linkedDocument;
           }
           var receiveEvent = $.Event("receive", receiveEventData);
           target.trigger(receiveEvent);
@@ -897,4 +909,9 @@ Template.documentGraphInLink.onDestroyed(function () {
 Template.documentGraphGroupMember.onDestroyed(function () {
   var removeGroupMemberEvent = $.Event("removegroupmember", {groupId : this.data.id});
   $(this.element).trigger(removeGroupMemberEvent);
+});
+
+Template.documentGraphGroup.onDestroyed(function () {
+  var removeGroupEvent = $.Event("removegroup", {groupId : this.data.id});
+  $(this.element).trigger(removeGroupEvent);
 });
