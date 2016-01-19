@@ -1,4 +1,9 @@
 <template name="documentGraph">
+  <svg class="document-graph-svg">
+    {{#each groupHulls}}
+      <path class="group-hull" d="{{hull}}" fill="{{fillColor}}" fill-opacity="0.1" />
+    {{/each}}
+  </svg>
   <canvas class="document-graph-canvas"></canvas>
   <div class="document-graph" style="position:absolute"><!-- error in element resize code requires absolute here -->
     {{#each collection}}

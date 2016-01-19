@@ -17,7 +17,8 @@
 
 .document-graph-in-link,
 .document-graph-out-link,
-.document-graph-canvas
+.document-graph-canvas,
+.document-graph-svg
 {
   position : absolute;
   left : 0;

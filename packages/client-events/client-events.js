@@ -7,13 +7,17 @@ $(function () {
   var doubletapTimeThreshold = 300;
   var doubletapDistanceThreshold = 8;
 
+  var holdTimeThreshold = 500;
+
+  var lastTouchTime = 0;
+
 	function distance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
 	}
 
   var lastTapData = {
     time : -Infinity
-  }
+  };
 
   $(document).on('touchstart', function (startEvent) {
     touchInterface = true;
@@ -69,13 +73,26 @@ $(function () {
     var x1 = startEvent.originalEvent.pageX;
     var y1 = startEvent.originalEvent.pageY;
 
+    var holdTimeout = setTimeout(function () {
+      var holdEvent = $.Event('hold', {
+        x : x1,
+        y : y1
+      });
+      $(startEvent.target).trigger(holdEvent);
+    }, holdTimeThreshold);
+
     var touchEvent = $.Event('touch', {
       x : x1,
       y : y1
     });
     $(startEvent.target).trigger(touchEvent);
 
+    $(window).one('mousemove', function () {
+      clearTimeout(holdTimeout);
+    });
+
     $(window).one('mouseup', function (endEvent) {
+      clearTimeout(holdTimeout);
       var x2 = endEvent.originalEvent.pageX;
       var y2 = endEvent.originalEvent.pageY;
       var withinTimeThreshold = (new Date()).getTime() - startTime < tapTimeThreshold;

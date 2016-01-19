@@ -18,6 +18,18 @@ function pointInPolygon (point, vs) {
   return inside;
 }
 
+function sqr(x) { return x * x }
+function dist2(v, w) { return sqr(v[0] - w[0]) + sqr(v[1] - w[1]) }
+function closestPointToLineSegment(p, v, w) {
+  var l2 = dist2(v, w);
+  if (l2 == 0) return;
+  var t = ((p[0] - v[0]) * (w[0] - v[0]) + (p[1] - v[1]) * (w[1] - v[1])) / l2;
+  if (t < 0) return;
+  if (t > 1) return;
+  return [ v[0] + t * (w[0] - v[0]), v[1] + t * (w[1] - v[1]) ];
+}
+
+//  for retina support of canvas
 function backingScale(context) {
   if ('devicePixelRatio' in window) {
     if (window.devicePixelRatio > 1) {
@@ -55,11 +67,12 @@ function overlap(node1, node2) {
   return overlappingX && overlappingY;
 }
 
-function cornersOf(node) {
-  var x1 = node.x - node.w/2;
-  var x2 = node.x + node.w/2;
-  var y1 = node.y - node.h/2;
-  var y2 = node.y + node.h/2;
+function cornersOf(node, padding) {
+  padding = padding || 0;
+  var x1 = node.x - node.w/2 - padding;
+  var x2 = node.x + node.w/2 + padding;
+  var y1 = node.y - node.h/2 - padding;
+  var y2 = node.y + node.h/2 + padding;
   return [[x1, y1],
           [x1, y2],
           [x2, y1],
@@ -82,6 +95,12 @@ function moveTowards(mover, target, alpha) {
   }
 }
 
+Template.documentGraph.helpers({
+  groupHulls : function () {
+    return Template.instance().groupHulls.find();
+  }
+});
+
 Template.documentGraph.onCreated(function () {
   var self = this;
   
@@ -89,6 +108,9 @@ Template.documentGraph.onCreated(function () {
 
   self.force.lineWidth = 1.5;
   self.force.strokeStyle = 'grey';
+
+  self.hullPadding = 16;
+  self.wideHullPadding = 64;
 
 
   self.force
@@ -122,6 +144,8 @@ Template.documentGraph.onCreated(function () {
 
   self.nodes = self.force.nodes();
   self.links = self.force.links();
+
+  self.groupHulls = new Meteor.Collection(null);
 });
 
 Template.documentGraph.onRendered(function () {
@@ -131,6 +155,7 @@ Template.documentGraph.onRendered(function () {
   self.height = $(this.firstNode).height();
 
   self.canvas = self.$('.document-graph-canvas')[0];
+  self.svg    = self.$('.document-graph-svg')[0];
   self.canvas.width = self.width;
   self.canvas.height = self.height;
   self.canvasContext = self.canvas.getContext('2d');
@@ -269,48 +294,78 @@ Template.documentGraph.onRendered(function () {
       }
     });
     var hulls = [];
+    var wideHulls = [];
     var hullGroupIds = [];
     for (var groupId in groups) {
       //  collect all relevant vertices for group hull
       //  (corners of nodes in group)
       if (groups[groupId].length == 1) continue;
       var groupVertices = [];
+      var wideGroupVertices = [];
       groups[groupId].forEach(function (node) {
-        cornersOf(node).forEach(function (corner) {
+        cornersOf(node, self.hullPadding).forEach(function (corner) {
           groupVertices.push(corner);
+        });
+        cornersOf(node, self.wideHullPadding).forEach(function (corner) {
+          wideGroupVertices.push(corner);
         });
       });
       var groupHull = d3.geom.hull(groupVertices);
+      var wideGroupHull = d3.geom.hull(wideGroupVertices);
       hullGroupIds.push(groupId);
       hulls.push(groupHull);
+      wideHulls.push(wideGroupHull);
     }
 
-    //  move nodes on hulls but not in group off of hull
+    //  move nodes off of hulls they are not in (use wide hulls)
     self.force.nodes().forEach(function (node) {
-      for (var i=0; i<hulls.length; i++) {
+      //  if group and dragging is happening, then don't move group node off since we might be dragging a node
+      if (node.fixed || (node.group && self.dragging)) return;
+      for (var i=0; i<wideHulls.length; i++) {
+        //  if on hull but not in group, move it off
         var groupId = hullGroupIds[i];
-        if (self.groupIdToNodeData[groupId] == node) {
-          //  node is group for hull
-        }
-        else if (node.groups[groupId]) {
-          //  node in hull
-        }
-        else if (pointInPolygon([node.x, node.y], hulls[i])) {
-          //  TODO: move off of polygon
-          console.log('point in polygon!');
+        var hull = wideHulls[i];
+        var nodeCoord = [node.x, node.y];
+        if (node !== self.groupIdToNodeData[groupId] //  node is not group for hull we are assessing
+        &&  !node.groups[groupId] //  node is not in the group for current hull
+        &&  pointInPolygon(nodeCoord,hull)) {
+          // find point on polygon closest to node and move towards it
+          var closestDistanceSquared = Infinity;
+          var closestPoint = hull[0];
+          for (var i=1; i<hull.length; i++) {
+            var point = closestPointToLineSegment(nodeCoord, hull[i-1], hull[i]);
+            if (point) {
+              var d = dist2(point, nodeCoord)
+              if (d < closestDistanceSquared) {
+                closestDistanceSquared = d;
+                closestPoint = point;
+              }
+            }
+          }
+          //  push nodes off of hull at constant rate
+          var dx = closestPoint[0] - node.x;
+          var dy = closestPoint[1] - node.y;
+          var dist = Math.sqrt(Math.pow(dx, 2), Math.pow(dy, 2));
+          //  make sure really small distances don't make a huge jump
+          if (dist > 0.1) {
+            node.x += dx/dist;
+            node.y += dy/dist;
+          }
         }
       }
-    })
-
-    //  draw hulls
-    hulls.forEach(function (hull) {
-      context.beginPath();
-      drawPath(context, hull);
-      context.fillStyle = "rgba(135,206,235,0.1)";
-      context.strokeStyle = "rgba(135,206,235,0.1)";
-      context.fill();
-      context.closePath()
     });
+
+    var pathString = d3.svg.line()
+                           .x(function (d) {return d[0]})
+                           .y(function (d) {return d[1]})
+                           .interpolate('basis-closed');
+
+    for (var i=0; i<hulls.length; i++) {
+      self.groupHulls.update(
+        {groupId : hullGroupIds[i]},
+        {$set : {hull : pathString(hulls[i]) + ' Z'}}
+      );
+    }
 
     self.force.nodes().forEach(function (nodeData) {
       var x = Math.round(nodeData.x - nodeData.w/2);
@@ -432,6 +487,11 @@ Template.documentGraph.events({
     event.groupNodeData.group = true;
     template.groupIdToNodeData[group] = event.groupNodeData;
     if (template.started) template.force.start();
+    template.groupHulls.insert({
+      groupId : group,
+      hull : '',
+      fillColor : 'skyblue'
+    });
   },
   'addgroupmember' : function (event, template) {
     //  document graph document added relevant data to node data already
@@ -531,6 +591,9 @@ Template.documentGraph.events({
     event.stopPropagation();
     delete template.groupIdToNodeData[group.id];
     if (template.started) template.force.start();
+    template.groupHulls.remove({
+      groupId : group
+    });
   },
   'removeoutlink' : function (event, template) {
     event.stopPropagation();
@@ -564,13 +627,24 @@ Template.documentGraph.events({
     }
     if (template.started) template.force.start();
   },
+  'drag' : function (event, template) {
+    template.dragging = true;
+  },
   'drop' : function (event, template) {
-    if (event.droppedDocument) {
+    template.dragging = false;
+    if (event.droppedDocument || event.linkedDocument) {
       //  search nodes for node under the given one
       template.force.nodes().forEach(function (node) {
-        if (node.template !== event.droppedDocument && pointInRect(event, node)) {
+        if (node.template !== event.droppedDocument && node.template !== event.linkedDocument && pointInRect(event, node)) {
           var target = node.template.$('.document-graph-document').children().first();
-          var receiveEvent = $.Event("receive", { document : event.droppedDocument.data.data });
+          var receiveEventData = {};
+          if (event.droppedDocument) {
+            receiveEventData.document = event.droppedDocument.data.data;
+          }
+          else if (event.linkedDocument) {
+            receiveEventData.linkedDocument = event.linkedDocument.data.data;
+          }
+          var receiveEvent = $.Event("receive", receiveEventData);
           target.trigger(receiveEvent);
         }
       });
@@ -668,7 +742,7 @@ Template.documentGraphDocument.helpers({
   isGroup : function () {
     return Template.instance().isGroup.get();
   }
-})
+});
 
 Template.documentGraphDocument.onDestroyed(function () {
   var removeNodeEvent = $.Event("removenode", { nodeData : this.nodeData });
@@ -677,6 +751,9 @@ Template.documentGraphDocument.onDestroyed(function () {
 
 //  add the link's template
 Template.documentGraphDocument.events({
+  'hold' : function (event, template) {
+    template.held = true;
+  },
   'hover, touch, focus' : function (event, template) {
     // set as active documnet
     if (activeDocument.get() && !activeDocument.get().nodeData.forceFixed) {
@@ -721,16 +798,27 @@ Template.documentGraphDocument.events({
   'drag' : function (event, template) {
     template.nodeData.fixed = true;
     template.nodeData.dragging = true;
-    template.nodeData.px += event.dx;
-    template.nodeData.py += event.dy;
-    template.nodeData.force.resume();
+    if (template.held) {
+      //  don't drag so link can drag
+    }
+    else {
+      template.nodeData.px += event.dx;
+      template.nodeData.py += event.dy;
+      template.nodeData.force.resume();
+    }
   },
   'drop' : function (event, template) {
     if (activeDocument.get() != template && !active.nodeData.forceFixed) {
       template.nodeData.fixed = false;
     }
     template.nodeData.dragging = false;
-    event.droppedDocument = template;
+    if (template.held) {
+      template.held = false;
+      event.linkedDocument = template;
+    }
+    else {
+      event.droppedDocument = template;
+    }
     template.nodeData.force.resume();
   },
   'doubletap' : function (event, template) {
