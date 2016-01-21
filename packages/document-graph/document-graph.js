@@ -67,26 +67,29 @@ function overlap(node1, node2) {
   return overlappingX && overlappingY;
 }
 
+function pointsOnEllipse(xAxisLength, yAxisLength, position, numPoints) {
+  var points = [];
+  for (var i=0; i<numPoints; i++) {
+    var theta = 2*Math.PI/numPoints * i;
+    var x = xAxisLength * Math.cos(theta);
+    var y = yAxisLength * Math.sin(theta);
+    points.push([position.x + x, position.y + y]);
+  }
+  return points;
+}
+
+//  TODO: this should probably be provided by the client
 function nodeHull(node, padding) {
   padding = padding || 0;
   if (node.group) {
-    var x1 = node.x - node.w/2 - padding;
-    var x2 = node.x + node.w/2 + padding;
-    var y1 = node.y - node.h/2 - padding;
-    var y2 = node.y + node.h/2 + padding;
-    return [[x1, y1],
-            [x1, y2],
-            [x2, y1],
-            [x2, y2]];
+    return pointsOnEllipse(node.w, node.h, node, 8);
   }
   else {
-    padding *= 2;
-    var x = node.x - node.w/2;
-    var y = node.y - node.h/2;
-    return [[x + padding, y + padding],
-            [x - padding, y + padding],
-            [x + padding, y - padding],
-            [x - padding, y - padding]];
+    var d = 32;
+    return pointsOnEllipse(d, d, {
+      x : node.x - node.w/2,
+      y : node.y - node.h/2,
+    }, 8);
   }
 }
 
