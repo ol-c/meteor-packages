@@ -1,0 +1,13 @@
+<template name="dragDropList">
+  {{#each cursor}}
+    {{> dragDropItem template=../template data=this}}
+  {{/each}}
+</template>
+
+<template name="dragDropItem">
+  <div class="drag-drop-item-container">
+    <div class="drag-drop-item-content">
+      {{>Template.dynamic template=template data=data}}
+    </div>
+  </div>
+</template>

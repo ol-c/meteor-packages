@@ -1,0 +1,8 @@
+.drag-drop-item-container
+{}
+
+.drag-drop-item-content
+{
+  display : inline-block;
+  vertical-align:bottom;
+}

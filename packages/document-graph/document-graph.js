@@ -82,10 +82,10 @@ function pointsOnEllipse(xAxisLength, yAxisLength, position, numPoints) {
 function nodeHull(node, padding) {
   padding = padding || 0;
   if (node.group) {
-    return pointsOnEllipse(node.w, node.h, node, 8);
+    return pointsOnEllipse(node.w + 2*padding, node.h + 2*padding, node, 8);
   }
   else {
-    var d = 32;
+    var d = 32 + 2*padding;
     return pointsOnEllipse(d, d, {
       x : node.x - node.w/2,
       y : node.y - node.h/2,
@@ -126,8 +126,8 @@ Template.documentGraph.onCreated(function () {
   self.force.lineWidth = 1.5;
   self.force.strokeStyle = 'grey';
 
-  self.hullPadding = 16;
-  self.wideHullPadding = 64;
+  self.hullPadding = 8;
+  self.wideHullPadding = 8;
 
 
   self.force
@@ -369,8 +369,8 @@ Template.documentGraph.onRendered(function () {
           var dist = Math.sqrt(Math.pow(dx, 2), Math.pow(dy, 2));
           //  make sure really small distances don't make a huge jump
           if (dist > 0.1) {
-            node.x += Math.min(10, dx/dist) * 10 * alpha;
-            node.y += Math.min(10, dy/dist) * 10 * alpha;
+            node.x += Math.min(10, dx/dist) * 50 * alpha;
+            node.y += Math.min(10, dy/dist) * 50 * alpha;
           }
         }
       }

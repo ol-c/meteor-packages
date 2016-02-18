@@ -199,7 +199,13 @@ $(function () {
       var dy = y - lastY;
       var dragEvent = $.Event('drag', {
         dx : dx,
-        dy : dy
+        dy : dy,
+        tx : x - startX,
+        ty : y - startY,
+        sx : startX,
+        sy : startY,
+        x : x,
+        y : y
       });
 
       $(moveEvent.target).trigger(dragEvent);
@@ -273,7 +279,13 @@ $(function () {
       var dy = y - lastY;
       var dragEvent = $.Event('drag', {
         dx : dx,
-        dy : dy
+        dy : dy,
+        tx : x - startX,
+        ty : y - startY,
+        sx : startX,
+        sy : startY,
+        x : x,
+        y : y
       });
 
       $(startTarget).trigger(dragEvent);

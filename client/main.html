@@ -19,6 +19,7 @@
       <option>documentGraph</option>
       <option>ratingBar</option>
       <option>overlayButton</option>
+      <option>dragDropList</option>
       <option>json</option>
     </select>
   </div>
@@ -74,6 +75,9 @@
     {{/if}}
     {{#if equals currentDemo "json"}}
       {{> json jsonData}}
+    {{/if}}
+    {{#if equals currentDemo "dragDropList"}}
+      {{> dragDropList cursor=scrollCursor template="randomSize"}}
     {{/if}}
   </div>
 </body>

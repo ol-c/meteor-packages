@@ -1,0 +1,23 @@
+<template name="agents">
+  <svg class="selections" width="100%" height="100%">
+    {{#each selections}}
+      <path class="selection" d="{{d}}" stroke="{{stroke}}" fill="{{fill}}" fill-opacity="0.1" />
+    {{/each}}
+  </svg>
+  <div class="agents">
+    {{#each agents}}
+      {{> agent}}
+    {{/each}}
+  </div>
+</template>
+
+<template name="agent">
+  <div class="agent" style="transform : translate({{pixelPoint.x}}px, {{pixelPoint.y}}px);">
+    {{#if isActiveAgent}}
+      <input class="agent-input" id="{{_id}}">
+    {{else}}
+      <span class="agent-name">{{name}}</span>
+      <pre class="agent-input">{{input}}</pre>
+    {{/if}}
+  </div>
+</template>

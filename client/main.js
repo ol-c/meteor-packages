@@ -141,7 +141,7 @@ function keepAddingCarousel() {
 scrollCollection = new Mongo.Collection(null);
 var i;
 
-for (i=0; i<=1000; i++) {
+for (i=0; i<=100; i++) {
   scrollCollection.insert({
     index : i
   });
