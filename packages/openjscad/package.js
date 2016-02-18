@@ -29,7 +29,7 @@ Package.onUse(function(api) {
     'openjscad.js',
     'threecsg.js'
   ], 'client');
-//  api.export('OpenJsCad', 'client');
+  api.export('OpenJsCad', 'client');
 });
 
 Package.onTest(function(api) {

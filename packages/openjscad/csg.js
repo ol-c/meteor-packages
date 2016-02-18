@@ -103,7 +103,7 @@ for solid CAD anyway.
     // # class CSG
     // Holds a binary space partition tree representing a 3D solid. Two solids can
     // be combined using the `union()`, `subtract()`, and `intersect()` methods.
-    var CSG = function() {
+    CSG = function() {
         this.polygons = [];
         this.properties = new CSG.Properties();
         this.isCanonicalized = true;
@@ -5444,7 +5444,7 @@ for solid CAD anyway.
     // CAG: solid area geometry: like CSG but 2D
     // Each area consists of a number of sides
     // Each side is a line between 2 points
-    var CAG = function() {
+    CAG = function() {
         this.sides = [];
     };
 
