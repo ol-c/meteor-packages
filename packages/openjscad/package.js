@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:openjscad',
-  version: '0.0.1',
+  version: '0.0.2',
   // Brief, one-line summary of the package.
   summary: 'easily add openjscad objects to your meteor project!',
   // URL to the Git repository containing the source code for this package.
