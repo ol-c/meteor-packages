@@ -18,7 +18,6 @@ Template.dragDropList.events({
         x : event.x - co.left + po.left,
         y : event.y - co.top + po.top
       };
-      itemContainer.addClass('dragging');
       event.stopPropagation();
     }
   },
@@ -34,6 +33,7 @@ Template.dragDropList.events({
         top  : event.y - template.touchOffset.y
       });
 
+      itemContainer.addClass('dragging');
       //  move to document for positioning purposes
 
       // place content container in proper place in list
@@ -53,11 +53,12 @@ Template.dragDropList.events({
 
 
       itemContainer.width(itemContent.width());
+      itemContainer.height(itemContent.height());
       if (overlappingY(itemContent[0], itemContainer[0])) {
-        itemContainer.height(itemContent.height());
+        itemContainer.addClass('overlapping');
       }
       else {
-        itemContainer.height(0);
+        itemContainer.removeClass('overlapping');
       }
     }
   }
@@ -77,8 +78,7 @@ Template.dragDropItem.events({
   'drop' : function (event, template) {
     var itemContainer = $(template.firstNode);
     var itemContent = template.itemContent;
-    itemContainer.removeClass('dragging');
-
+    
     var o = itemContent.offset();
     var rightOverlap = window.innerWidth - o.left - itemContent.width();
     if (rightOverlap < 0) {
@@ -128,5 +128,9 @@ Template.dragDropItem.events({
         height : 0
       });
     }
+
+    //  remove after check overlapp
+    itemContainer.removeClass('dragging');
+    itemContainer.removeClass('overlapping');
   }
 })

@@ -46,6 +46,7 @@ OpenJsCad.Viewer = function(containerElm, size, options) {
     }
     this.bgColor_ = new THREE.Color();
     this.bgColor_.setRGB.apply(this.bgColor_, options.bgColor || defaultBgColor);
+
     // the elm to contain the canvas
     this.containerElm_ = containerElm;
 
@@ -102,7 +103,7 @@ OpenJsCad.Viewer.prototype = {
           THREE.WebGLRenderer : THREE.CanvasRenderer;
       // we're creating new canvas on switching renderer, as same
       // canvas doesn't tolerate moving from webgl to canvasrenderer 
-      var renderer = new Renderer({precision: 'highp'});
+      var renderer = new Renderer({precision: 'highp', alpha: true});
       this.renderer_ = renderer;
 
       if (this.canvas) {
@@ -111,7 +112,8 @@ OpenJsCad.Viewer.prototype = {
       this.canvas = renderer.domElement;
       this.containerElm_.appendChild(this.canvas);
       // scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 )
-      renderer.setClearColor(this.bgColor_);
+      //renderer.setClearColor(this.bgColor_, 0);
+      renderer.setClearColor(0x000000, 0);
       // renderer.setClearColor(scene.fog.color);
       // and add controls
       this.createControls(renderer.domElement);

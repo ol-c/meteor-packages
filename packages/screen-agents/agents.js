@@ -68,13 +68,17 @@ function firstIn(time) {
   return firstIn;
 }
 
+var lastPosition = {x:window.innerWidth/2,y:window.innerHeight/2};
+
 $(window).on('mousemove', function (event) {
   //  only the first is captured when mouse over inactive window
   //  this ignores that first firing
   if (!firstIn(100)) {
-    var x = event.clientX;
-    var y = event.clientY;
-    Meteor.call('moveAgent', agentId, pixelToViewUnits({x:x,y:y}));
+    lastPosition = {
+      x : event.clientX,
+      y : event.clientY
+    };
+    Meteor.call('moveAgent', agentId, pixelToViewUnits(lastPosition));
   }
 });
 
@@ -133,17 +137,19 @@ Template.agent.helpers({
 
 Template.agent.events({
   'keypress .agent-input' : function (event, template) {
-    var input = $(event.target).val();
+    var input = $(event.target).val().trim();
+    if (input == '') {
+      $(event.target).val('');
+    }
     if (event.keyCode == 13) {
       $(event.target).val('');
       var agentInputEvent = $.Event("agentinput", {
         agentId : agentId,
-        input : input
+        input : input,
+        x : lastPosition.x,
+        y : lastPosition.y
       });
       $(event.target).trigger(agentInputEvent);
-    }
-    else {
-      Meteor.call('agentInput', agentId, input);
     }
     if (input == '') {
       $('#' + agentId).css({opacity : 0});
@@ -154,9 +160,7 @@ Template.agent.events({
   },
   'keyup .agent-input' : function (event, template) {
     var input = $(event.target).val();
-    if (event.keyCode == 8) {
-      Meteor.call('agentInput', agentId, input);
-    }
+    Meteor.call('agentInput', agentId, input);
     if (input == '') {
       $('#' + agentId).css({opacity : 0});
     }
@@ -171,7 +175,20 @@ Template.agent.events({
 //  if user is typing and active element is body
 //  prevent default and focus on agent input
 $(window).on('keydown', function (event) {
-  if (document.activeElement == document.body) {
+  if (event.keyCode == 9
+  && $(document.activeElement).hasClass('agent-input')){
+    event.preventDefault(); //  stop tab from changing context
+    var agentInputEvent = $.Event("agenttab", {
+      agentId : agentId,
+      x : lastPosition.x,
+      y : lastPosition.y
+    });
+    $(event.target).trigger(agentInputEvent);
+  }
+  //  focus on agent if not focused on anything and not selecting anything
+  if (document.activeElement == document.body
+  && window.getSelection().toString() === '') {
+    console.log(event);
     $('#' + agentId).focus();
   }
 });
