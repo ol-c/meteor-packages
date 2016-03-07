@@ -60,9 +60,16 @@ $(function () {
 
   var dragging = false;
 
-  $(window).on('mouseover', function (event) {
+  $(window).on('mouseenter', function (event) {
     if (!dragging) {
       var hoverEvent = $.Event('hover', {});
+      $(event.target).trigger(hoverEvent);
+    }
+  });
+
+  $(window).on('mouseout', function (event) {
+    if (!dragging) {
+      var hoverEvent = $.Event('leave', {});
       $(event.target).trigger(hoverEvent);
     }
   });

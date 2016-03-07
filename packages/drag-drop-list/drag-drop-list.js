@@ -100,7 +100,7 @@ Template.dragDropItem.events({
       itemContent.css({
         top : parseFloat(itemContent.css('top')) + bottomOverlap
       });
-      o.top += rightOverlap;
+      o.top += bottomOverlap;
     }
     var topOverlap = -o.top;
     if (topOverlap > 0) {

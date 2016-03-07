@@ -185,6 +185,16 @@ $(window).on('keydown', function (event) {
     });
     $(event.target).trigger(agentInputEvent);
   }
+  if (event.keyCode == 18
+  && $(document.activeElement).hasClass('agent-input')){
+    event.preventDefault(); //  stop tab from changing context
+    var agentInputEvent = $.Event("agentalt", {
+      agentId : agentId,
+      x : lastPosition.x,
+      y : lastPosition.y
+    });
+    $(event.target).trigger(agentInputEvent);
+  }
   //  focus on agent if not focused on anything and not selecting anything
   if (document.activeElement == document.body
   && window.getSelection().toString() === '') {
