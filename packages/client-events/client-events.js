@@ -59,18 +59,31 @@ $(function () {
   });
 
   var dragging = false;
+  var hovered = null;
+
+  $(document.body).on('mousewheel', function (event) {
+    if (!dragging && hovered != event.target) {
+      var leaveEvent = $.Event('leave', {});
+      $(hovered).trigger(leaveEvent);
+      
+      hovered = event.target;
+      var hoverEvent = $.Event('hover', {});
+      $(event.target).trigger(hoverEvent);
+    }
+  });
 
   $(window).on('mouseenter', function (event) {
-    if (!dragging) {
+    if (!dragging && hovered !== event.target) {
+      hovered = event.target;
       var hoverEvent = $.Event('hover', {});
       $(event.target).trigger(hoverEvent);
     }
   });
 
   $(window).on('mouseout', function (event) {
-    if (!dragging) {
-      var hoverEvent = $.Event('leave', {});
-      $(event.target).trigger(hoverEvent);
+    if (!dragging && hovered == event.target) {
+      var leaveEvent = $.Event('leave', {});
+      $(event.target).trigger(leaveEvent);
     }
   });
 
