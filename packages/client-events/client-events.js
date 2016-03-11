@@ -62,29 +62,22 @@ $(function () {
   var hovered = null;
 
   $(document.body).on('mousewheel', function (event) {
-    if (!dragging && hovered != event.target) {
-      var leaveEvent = $.Event('leave', {});
-      $(hovered).trigger(leaveEvent);
-      
-      hovered = event.target;
-      var hoverEvent = $.Event('hover', {});
-      $(event.target).trigger(hoverEvent);
-    }
   });
 
   $(window).on('mouseenter', function (event) {
-    if (!dragging && hovered !== event.target) {
+    if (!dragging) {
       hovered = event.target;
-      var hoverEvent = $.Event('hover', {});
+      var hoverEvent = $.Event('hover', {
+        x : event.pageX,
+        y : event.pageY
+      });
       $(event.target).trigger(hoverEvent);
     }
   });
 
   $(window).on('mouseout', function (event) {
-    if (!dragging && hovered == event.target) {
       var leaveEvent = $.Event('leave', {});
       $(event.target).trigger(leaveEvent);
-    }
   });
 
   $(window).on('mousedown', function (startEvent) {

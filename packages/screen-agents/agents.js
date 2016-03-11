@@ -115,7 +115,7 @@ Template.body.events({
       $('#' + agentId).focus();
     }
     if (agent.selection.length > 1) {
-      var selectionEvent = $.Event('polygonselection', {selection : agent.selection});
+      var selectionEvent = $.Event('agentpolygon', {selection : agent.selection});
       $(event.target).trigger(selectionEvent);
     }
     Meteor.call('agentState', agentId, '');
