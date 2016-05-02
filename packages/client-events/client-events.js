@@ -2,8 +2,8 @@ $(function () {
 
   var touchInterface = false;
 
-	var tapTimeThreshold = 300; // max milliseconds for tap to go from touchstart to touchend
-	var tapDistanceThreshold = 8; //  max pixels for tap to move between touchstart and touch end
+  var tapTimeThreshold = 300; // max milliseconds for tap to go from touchstart to touchend
+  var tapDistanceThreshold = 8; //  max pixels for tap to move between touchstart and touch end
   var doubletapTimeThreshold = 300;
   var doubletapDistanceThreshold = 8;
 
@@ -11,9 +11,9 @@ $(function () {
 
   var lastTouchTime = 0;
 
-	function distance(x1, y1, x2, y2) {
+  function distance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
-	}
+  }
 
   var lastTapData = {
     time : -Infinity
@@ -281,7 +281,7 @@ $(function () {
 
     function drag(moveEvent) {
       dragging = true;
-      moveEvent.preventDefault();
+//      moveEvent.preventDefault();
 
       var x = moveEvent.originalEvent.pageX;
       var y = moveEvent.originalEvent.pageY;

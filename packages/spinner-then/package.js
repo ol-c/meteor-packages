@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jasonford:spinner-then',
-  version: '0.0.2',
+  version: '0.2.1',
   // Brief, one-line summary of the package.
   summary: 'Template helper that returns a spinner url until a provided image url is fully loaded',
   // URL to the Git repository containing the source code for this package.
