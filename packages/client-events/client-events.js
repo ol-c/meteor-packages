@@ -27,7 +27,8 @@ $(function () {
 
     var touchEvent = $.Event('touch', {
       x : x1,
-      y : y1
+      y : y1,
+      fingers : startEvent.originalEvent.touches.length
     });
     $(startEvent.target).trigger(touchEvent);
 
@@ -96,7 +97,8 @@ $(function () {
 
     var touchEvent = $.Event('touch', {
       x : x1,
-      y : y1
+      y : y1,
+      fingers : 1
     });
     $(startEvent.target).trigger(touchEvent);
 
