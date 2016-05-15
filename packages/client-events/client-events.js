@@ -136,10 +136,10 @@ $(function () {
   $(document).on('wheel', function (event) {
     var scale;
     if (event.originalEvent.deltaY > 0) {
-      scale = 1.1;
+      scale = 1.05;
     }
     else {
-      scale = 1/1.1;
+      scale = 1/1.05;
     }
     pinchEvent = $.Event('pinch', {
       scale : scale,
@@ -150,8 +150,8 @@ $(function () {
   });
 
   $(document).on('touchstart', function (startEvent) {
-    var startX = startEvent.originalEvent.touches[0].screenX;
-    var startY = startEvent.originalEvent.touches[0].screenY;
+    var startX = startEvent.originalEvent.touches[0].pageX;
+    var startY = startEvent.originalEvent.touches[0].pageY;
     //  last 5 velocities recorded in x direction
     var vx = [0,0,0,0,0];
     var lastT = new Date();
@@ -164,8 +164,8 @@ $(function () {
     else if (startEvent.originalEvent.touches.length == 2) {
       var x1 = startX;
       var y1 = startY;
-      var x2 = startEvent.originalEvent.touches[1].screenX;
-      var y2 = startEvent.originalEvent.touches[1].screenY;
+      var x2 = startEvent.originalEvent.touches[1].pageX;
+      var y2 = startEvent.originalEvent.touches[1].pageY;
 
       firstD = distance(x1, y1, x2, y2);
       lastD = firstD;
@@ -182,8 +182,8 @@ $(function () {
     var lastY = startY;
 
     function drag(moveEvent) {
-      var x = moveEvent.originalEvent.touches[0].screenX;
-      var y = moveEvent.originalEvent.touches[0].screenY;
+      var x = moveEvent.originalEvent.touches[0].pageX;
+      var y = moveEvent.originalEvent.touches[0].pageY;
       var scale = 1;
       var t = new Date();
       var pinchEvent;
@@ -191,8 +191,8 @@ $(function () {
       if (startEvent.originalEvent.touches.length == 2) {
         var x1 = x;
         var y1 = y;
-        var x2 = moveEvent.originalEvent.touches[1].screenX;
-        var y2 = moveEvent.originalEvent.touches[1].screenY;
+        var x2 = moveEvent.originalEvent.touches[1].pageX;
+        var y2 = moveEvent.originalEvent.touches[1].pageY;
 
         x = (x1 + x2)/2;
         y = (y1 + y2)/2;
@@ -218,7 +218,8 @@ $(function () {
         sx : startX,
         sy : startY,
         x : x,
-        y : y
+        y : y,
+        fingers : startEvent.originalEvent.touches.length
       });
 
       $(moveEvent.target).trigger(dragEvent);
@@ -298,7 +299,8 @@ $(function () {
         sx : startX,
         sy : startY,
         x : x,
-        y : y
+        y : y,
+        fingers : 1
       });
 
       $(startTarget).trigger(dragEvent);
