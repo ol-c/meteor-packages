@@ -1,0 +1,26 @@
+<body>
+  {{# each mainRenderedTemplates }}
+    <div class="main-template-container">
+      {{#if mainTemplateVisible @index}}
+        {{> Template.dynamic template=name data=data }}
+      {{/if}}
+    </div>
+  {{/each}}
+</body>
+
+<template name="transitioner">
+  {{> Template.contentBlock}}
+</template>
+
+<template name="breadcrumbs">
+  {{#each $mapped breadcrumbs}}
+    {{#if $last}}
+      <span>{{name}}</span>
+    {{else}}
+      {{#transitioner template="back (index)"}}
+        <span>{{name}}</span>
+      {{/transitioner}}
+      &gt;
+    {{/if}}
+  {{/each}}
+</template>
