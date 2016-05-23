@@ -25,6 +25,20 @@ $(function () {
     var x1 = startEvent.originalEvent.touches[0].pageX;
     var y1 = startEvent.originalEvent.touches[0].pageY;
 
+
+
+    var holdTimeout = setTimeout(function () {
+      var holdEvent = $.Event('hold', {
+        x : x1,
+        y : y1
+      });
+      $(startEvent.target).trigger(holdEvent);
+    }, holdTimeThreshold);
+
+    $(window).one('touchmove', function () {
+      clearTimeout(holdTimeout);
+    });
+
     var touchEvent = $.Event('touch', {
       x : x1,
       y : y1,
@@ -33,6 +47,7 @@ $(function () {
     $(startEvent.target).trigger(touchEvent);
 
     $(document).one('touchend touchcancel', function (endEvent) {
+      clearTimeout(holdTimeout);
       var x2 = endEvent.originalEvent.changedTouches[0].pageX;
       var y2 = endEvent.originalEvent.changedTouches[0].pageY;
       var withinTimeThreshold = (new Date()).getTime() - startTime < tapTimeThreshold;
