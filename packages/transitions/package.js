@@ -1,6 +1,6 @@
 Package.describe({
-  name: 'transitions',
-  version: '0.0.1',
+  name: 'jasonford:transitions',
+  version: '0.1.1',
   // Brief, one-line summary of the package.
   summary: 'transition between templates and contexts',
   // URL to the Git repository containing the source code for this package.
@@ -12,16 +12,18 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
-  api.use(['ecmascript', 'templating'], 'client');
-  api.addFiles('transitions.js');
-  api.addFiles('transitions.css');
-  api.addFiles('transitions.html');
-  api.export("transition")
+  api.use(['ecmascript',
+           'reactive-var',
+           'templating'], 'client');
+  api.addFiles(['transitions.html',
+                'transitions.js',
+                'transitions.css'], 'client');
+  api.export("transition");
 });
 
 Package.onTest(function(api) {
   api.use('ecmascript');
   api.use('tinytest');
-  api.use('transitions');
+  api.use('jasonford:transitions');
   api.addFiles('transitions-tests.js');
 });

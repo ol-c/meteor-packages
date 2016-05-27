@@ -128,7 +128,7 @@
 
         if ("[object Array]" === Object.prototype.toString.call(element)
             || ('undefined' !== typeof jQuery && element instanceof jQuery) //jquery
-            || ('undefined' !== typeof Elements && element instanceof Elements) //mootools
+//            || ('undefined' !== typeof Elements && element instanceof Elements) //mootools
             ) {
             var i = 0, j = element.length;
             for (; i < j; i++) {
